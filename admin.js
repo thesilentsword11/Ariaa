@@ -31,7 +31,7 @@ let editingProductId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-    if (!supabase) {
+    if (!adminClient) {
 
         showLoginError(
             "Supabase is not configured yet. Please create supabase-config.js."
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         data: {
             session
         }
-    } = await supabase.auth.getSession();
+    } = await adminClient.auth.getSession();
 
 
     if (session) {
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
        Listen for login/logout changes.
     */
 
-    supabase.auth.onAuthStateChange(
+    adminClient.auth.onAuthStateChange(
         (event, session) => {
 
             if (session) {
@@ -187,7 +187,7 @@ async function loginAdmin(event) {
 
     const {
         error
-    } = await supabase.auth.signInWithPassword({
+    } = await adminClient.auth.signInWithPassword({
 
         email: email,
 
@@ -345,7 +345,7 @@ async function logoutAdmin() {
     if (!confirmed) return;
 
 
-    await supabase.auth.signOut();
+    await adminClient.auth.signOut();
 
 }
 
@@ -384,7 +384,7 @@ async function loadProducts() {
     const {
         data,
         error
-    } = await supabase
+    } = await adminClient
         .from("products")
         .select("*")
         .order(
@@ -753,7 +753,7 @@ async function saveProduct(event) {
     if (editingProductId) {
 
         result =
-            await supabase
+            await adminClient
                 .from("products")
                 .update(productData)
                 .eq(
@@ -771,7 +771,7 @@ async function saveProduct(event) {
     else {
 
         result =
-            await supabase
+            await adminClient
                 .from("products")
                 .insert([
                     productData
@@ -834,7 +834,7 @@ async function editProduct(id) {
     const {
         data,
         error
-    } = await supabase
+    } = await adminClient
         .from("products")
         .select("*")
         .eq(
@@ -950,7 +950,7 @@ async function deleteProduct(id) {
 
     const {
         error
-    } = await supabase
+    } = await adminClient
         .from("products")
         .delete()
         .eq(
