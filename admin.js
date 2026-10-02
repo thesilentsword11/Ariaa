@@ -3,18 +3,6 @@
    ADMIN PANEL
 ========================================= */
 
-
-/*
-   Supabase client
-
-   This expects supabase-config.js to create:
-
-   const supabaseClient = window.supabaseClient;
-
-   We will create that file next.
-*/
-
-
 const adminClient = window.supabaseClient;
 
 
@@ -38,13 +26,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         return;
-
     }
 
-
-    /*
-       Check whether an admin is already logged in.
-    */
 
     const {
         data: {
@@ -55,35 +38,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (session) {
 
-        showAdminPanel(
-            session.user
-        );
+        showAdminPanel(session.user);
 
-    }
-
-    else {
+    } else {
 
         showLoginScreen();
 
     }
 
 
-    /*
-       Listen for login/logout changes.
-    */
-
     adminClient.auth.onAuthStateChange(
         (event, session) => {
 
             if (session) {
 
-                showAdminPanel(
-                    session.user
-                );
+                showAdminPanel(session.user);
 
-            }
-
-            else {
+            } else {
 
                 showLoginScreen();
 
@@ -92,10 +63,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     );
 
-
-    /*
-       Login form
-    */
 
     const loginForm =
         document.getElementById("loginForm");
@@ -111,10 +78,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    /*
-       Product form
-    */
-
     const productForm =
         document.getElementById("productForm");
 
@@ -129,18 +92,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    /*
-       Image preview
-    */
-
     const imageInput =
-        document.getElementById("productImage");
+        document.getElementById("productImageFile");
 
 
     if (imageInput) {
 
         imageInput.addEventListener(
-            "input",
+            "change",
             previewProductImage
         );
 
@@ -320,10 +279,6 @@ async function showAdminPanel(user) {
 
     }
 
-
-    /*
-       Load products after login.
-    */
 
     await loadProducts();
 
@@ -648,7 +603,20 @@ async function saveProduct(event) {
         );
 
 
-    const image =
+    const imageFileInput =
+        document.getElementById(
+            "productImageFile"
+        );
+
+
+    const imageFile =
+        imageFileInput &&
+        imageFileInput.files
+            ? imageFileInput.files[0]
+            : null;
+
+
+    const existingImage =
         document
             .getElementById("productImage")
             .value
@@ -690,7 +658,10 @@ async function saveProduct(event) {
     }
 
 
-    if (price < 0 || Number.isNaN(price)) {
+    if (
+        price < 0 ||
+        Number.isNaN(price)
+    ) {
 
         alert(
             "Please enter a valid price."
@@ -701,13 +672,48 @@ async function saveProduct(event) {
     }
 
 
-    if (!image) {
+    if (
+        !editingProductId &&
+        !imageFile &&
+        !existingImage
+    ) {
 
         alert(
-            "Please enter a product image URL."
+            "Please choose a product image."
         );
 
         return;
+
+    }
+
+
+    if (imageFile) {
+
+        if (
+            !imageFile.type.startsWith("image/")
+        ) {
+
+            alert(
+                "Please choose an image file."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            imageFile.size >
+            10 * 1024 * 1024
+        ) {
+
+            alert(
+                "Please choose an image smaller than 10 MB."
+            );
+
+            return;
+
+        }
 
     }
 
@@ -720,107 +726,204 @@ async function saveProduct(event) {
 
     button.disabled = true;
 
+
     button.textContent =
         editingProductId
-        ? "UPDATING..."
-        : "SAVING...";
+            ? (
+                imageFile
+                    ? "UPLOADING..."
+                    : "UPDATING..."
+            )
+            : "UPLOADING...";
 
 
-    const productData = {
+    try {
 
-        name: name,
-
-        price: price,
-
-        category: category,
-
-        image: image,
-
-        description: description,
-
-        available: available
-
-    };
+        let image =
+            existingImage;
 
 
-    let result;
+        /* =====================================
+           UPLOAD IMAGE TO SUPABASE STORAGE
+        ===================================== */
+
+        if (imageFile) {
+
+            const safeName =
+                imageFile.name
+                    .toLowerCase()
+                    .replace(
+                        /[^a-z0-9.]+/g,
+                        "-"
+                    )
+                    .replace(
+                        /-+/g,
+                        "-"
+                    );
 
 
-    /*
-       EDIT EXISTING PRODUCT
-    */
-
-    if (editingProductId) {
-
-        result =
-            await adminClient
-                .from("products")
-                .update(productData)
-                .eq(
-                    "id",
-                    editingProductId
-                );
-
-    }
+            const filePath =
+                `${Date.now()}-${safeName}`;
 
 
-    /*
-       ADD NEW PRODUCT
-    */
-
-    else {
-
-        result =
-            await adminClient
-                .from("products")
-                .insert([
-                    productData
-                ]);
-
-    }
-
-
-    button.disabled = false;
-
-    button.textContent =
-        "SAVE PRODUCT";
+            const uploadResult =
+                await adminClient.storage
+                    .from("product-images")
+                    .upload(
+                        filePath,
+                        imageFile,
+                        {
+                            cacheControl: "3600",
+                            upsert: false,
+                            contentType:
+                                imageFile.type
+                        }
+                    );
 
 
-    if (result.error) {
+            if (uploadResult.error) {
 
-        console.error(
-            result.error
-        );
+                throw uploadResult.error;
+
+            }
+
+
+            const publicUrlResult =
+                adminClient.storage
+                    .from("product-images")
+                    .getPublicUrl(
+                        filePath
+                    );
+
+
+            image =
+                publicUrlResult
+                    .data
+                    .publicUrl;
+
+        }
+
+
+        if (!image) {
+
+            throw new Error(
+                "Could not determine the product image URL."
+            );
+
+        }
+
+
+        /* =====================================
+           PRODUCT DATA
+        ===================================== */
+
+        const productData = {
+
+            name: name,
+
+            price: price,
+
+            category: category,
+
+            image: image,
+
+            description: description,
+
+            available: available
+
+        };
+
+
+        let result;
+
+
+        /* =====================================
+           UPDATE EXISTING PRODUCT
+        ===================================== */
+
+        if (editingProductId) {
+
+            result =
+                await adminClient
+                    .from("products")
+                    .update(productData)
+                    .eq(
+                        "id",
+                        editingProductId
+                    );
+
+        }
+
+
+        /* =====================================
+           INSERT NEW PRODUCT
+        ===================================== */
+
+        else {
+
+            result =
+                await adminClient
+                    .from("products")
+                    .insert([
+                        productData
+                    ]);
+
+        }
+
+
+        if (result.error) {
+
+            throw result.error;
+
+        }
 
 
         showAdminMessage(
-            result.error.message,
-            "error"
+
+            editingProductId
+                ? "Product updated successfully."
+                : "Product added successfully.",
+
+            "success"
+
         );
 
 
-        return;
+        resetProductForm();
+
+
+        await loadProducts();
+
+
+        showAdminSection(
+            "productsSection"
+        );
 
     }
 
 
-    showAdminMessage(
-        editingProductId
-            ? "Product updated successfully."
-            : "Product added successfully.",
-        "success"
-    );
+    catch (error) {
+
+        console.error(error);
 
 
-    resetProductForm();
+        showAdminMessage(
+            error.message ||
+            "Could not save product.",
+            "error"
+        );
+
+    }
 
 
-    await loadProducts();
+    finally {
 
+        button.disabled = false;
 
-    showAdminSection(
-        "productsSection"
-    );
+        button.textContent =
+            "SAVE PRODUCT";
+
+    }
 
 }
 
@@ -866,7 +969,8 @@ async function editProduct(id) {
 
     document.getElementById(
         "productId"
-    ).value = id;
+    ).value =
+        id;
 
 
     document.getElementById(
@@ -891,6 +995,12 @@ async function editProduct(id) {
         "productImage"
     ).value =
         data.image || "";
+
+
+    document.getElementById(
+        "productImageFile"
+    ).value =
+        "";
 
 
     document.getElementById(
@@ -1064,11 +1174,10 @@ function resetProductForm() {
 
 function previewProductImage() {
 
-    const url =
-        document
-            .getElementById("productImage")
-            .value
-            .trim();
+    const fileInput =
+        document.getElementById(
+            "productImageFile"
+        );
 
 
     const preview =
@@ -1077,16 +1186,60 @@ function previewProductImage() {
         );
 
 
+    const existingImage =
+        document
+            .getElementById(
+                "productImage"
+            )
+            .value
+            .trim();
+
+
     if (!preview) return;
 
 
-    if (!url) {
+    const file =
+        fileInput &&
+        fileInput.files
+            ? fileInput.files[0]
+            : null;
+
+
+    if (file) {
+
+        const objectUrl =
+            URL.createObjectURL(
+                file
+            );
+
 
         preview.innerHTML = `
 
-            <span>
-                Image preview will appear here
-            </span>
+            <img
+                src="${objectUrl}"
+                alt="Product preview"
+            >
+
+        `;
+
+
+        return;
+
+    }
+
+
+    if (existingImage) {
+
+        preview.innerHTML = `
+
+            <img
+                src="${escapeHtml(existingImage)}"
+                alt="Product preview"
+                onerror="
+                    this.parentElement.innerHTML =
+                    '<span>Could not load image</span>'
+                "
+            >
 
         `;
 
@@ -1098,14 +1251,9 @@ function previewProductImage() {
 
     preview.innerHTML = `
 
-        <img
-            src="${escapeHtml(url)}"
-            alt="Product preview"
-            onerror="
-                this.parentElement.innerHTML =
-                '<span>Could not load image</span>'
-            "
-        >
+        <span>
+            Image preview will appear here
+        </span>
 
     `;
 
@@ -1123,13 +1271,15 @@ function showAdminSection(
 
     document
         .querySelectorAll(".admin-section")
-        .forEach(section => {
+        .forEach(
+            section => {
 
-            section.classList.remove(
-                "active-section"
-            );
+                section.classList.remove(
+                    "active-section"
+                );
 
-        });
+            }
+        );
 
 
     const section =
@@ -1149,13 +1299,15 @@ function showAdminSection(
 
     document
         .querySelectorAll(".sidebar-link")
-        .forEach(link => {
+        .forEach(
+            link => {
 
-            link.classList.remove(
-                "active"
-            );
+                link.classList.remove(
+                    "active"
+                );
 
-        });
+            }
+        );
 
 
     if (button) {
@@ -1196,15 +1348,18 @@ function showAdminMessage(
         type;
 
 
-    setTimeout(() => {
+    setTimeout(
+        () => {
 
-        element.className =
-            "admin-message";
+            element.className =
+                "admin-message";
 
-        element.textContent =
-            "";
+            element.textContent =
+                "";
 
-    }, 5000);
+        },
+        5000
+    );
 
 }
 
@@ -1216,22 +1371,27 @@ function showAdminMessage(
 function escapeHtml(value) {
 
     return String(value)
+
         .replace(
             /&/g,
             "&amp;"
         )
+
         .replace(
             /</g,
             "&lt;"
         )
+
         .replace(
             />/g,
             "&gt;"
         )
+
         .replace(
             /"/g,
             "&quot;"
         )
+
         .replace(
             /'/g,
             "&#039;"
