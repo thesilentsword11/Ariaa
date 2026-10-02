@@ -461,7 +461,7 @@
 
 
 
-                    <!-- IMAGE -->
+                    <!-- IMAGE UPLOAD -->
 
                     <div class="form-field full-width">
 
@@ -475,13 +475,20 @@
                             accept="image/*"
                         >
 
+                        <!--
+                            Hidden field keeps the existing
+                            Supabase image URL when editing
+                            a product without replacing it.
+                        -->
+
                         <input
                             type="hidden"
                             id="productImage"
                         >
 
                         <small>
-                            Choose an image from your computer. It will be uploaded automatically to Supabase.
+                            Choose an image from your computer.
+                            It will be uploaded automatically to Supabase.
                         </small>
 
                     </div>
