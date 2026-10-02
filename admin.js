@@ -15,7 +15,7 @@
 */
 
 
-const supabase = window.supabaseClient;
+const adminClient = window.supabaseClient;
 
 
 /* =========================================
