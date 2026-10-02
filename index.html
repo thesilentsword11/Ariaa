@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ariaa Jewels</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <a
+        href="#home"
+        class="logo"
+    >
+        ARIAA
+
+        <span>
+            JEWELS
+        </span>
+    </a>
+
+
+    <nav>
+
+        <a href="#home">
+            Home
+        </a>
+
+        <a href="#collection">
+            Collection
+        </a>
+
+        <a href="#about">
+            About
+        </a>
+
+        <a href="#contact">
+            Contact
+        </a>
+
+    </nav>
+
+
+    <button
+        class="jewel-button"
+        onclick="openJewelBox()"
+    >
+
+        ◇
+
+        <span>
+            MY JEWEL BOX
+        </span>
+
+        <b id="cartCount">
+            0
+        </b>
+
+    </button>
+
+</header>
+
+
+
+<!-- HERO -->
+
+<section
+    class="hero"
+    id="home"
+>
+
+    <div class="hero-content">
+
+        <p class="eyebrow">
+            TIMELESS • ELEGANT • BEAUTIFUL
+        </p>
+
+        <h1>
+            Jewelry That Tells Your Story
+        </h1>
+
+        <p>
+            Discover beautiful pieces designed
+            for your most special moments.
+        </p>
+
+        <a
+            href="#collection"
+            class="gold-button"
+        >
+            SHOP COLLECTION
+        </a>
+
+    </div>
+
+</section>
+
+
+
+<!-- FEATURES -->
+
+<section class="features">
+
+    <div>
+
+        <span>
+            ◇
+        </span>
+
+        <h3>
+            Elegant Designs
+        </h3>
+
+        <p>
+            Beautiful pieces for every occasion.
+        </p>
+
+    </div>
+
+
+    <div>
+
+        <span>
+            ✦
+        </span>
+
+        <h3>
+            Carefully Selected
+        </h3>
+
+        <p>
+            Quality jewelry chosen with care.
+        </p>
+
+    </div>
+
+
+    <div>
+
+        <span>
+            ♡
+        </span>
+
+        <h3>
+            Made With Love
+        </h3>
+
+        <p>
+            Jewelry for moments that matter.
+        </p>
+
+    </div>
+
+</section>
+
+
+
+<!-- COLLECTION -->
+
+<section
+    class="collection"
+    id="collection"
+>
+
+    <div class="section-title">
+
+        <small>
+            OUR COLLECTION
+        </small>
+
+        <h2>
+            Discover Your Sparkle
+        </h2>
+
+        <p>
+            Find something beautiful for every occasion.
+        </p>
+
+    </div>
+
+
+    <div class="filters">
+
+        <button
+            class="filter active"
+            onclick="filterProducts('All', this)"
+        >
+            All
+        </button>
+
+        <button
+            class="filter"
+            onclick="filterProducts('Necklaces', this)"
+        >
+            Necklaces
+        </button>
+
+        <button
+            class="filter"
+            onclick="filterProducts('Rings', this)"
+        >
+            Rings
+        </button>
+
+        <button
+            class="filter"
+            onclick="filterProducts('Earrings', this)"
+        >
+            Earrings
+        </button>
+
+        <button
+            class="filter"
+            onclick="filterProducts('Bracelets', this)"
+        >
+            Bracelets
+        </button>
+
+    </div>
+
+
+    <div
+        class="products"
+        id="products"
+    >
+
+        <div class="loading-products">
+            Loading our collection...
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ABOUT -->
+
+<section
+    class="about"
+    id="about"
+>
+
+    <div class="about-image">
+
+        <img
+            src="images/about.jpg"
+            alt="Ariaa Jewels"
+        >
+
+    </div>
+
+
+    <div class="about-content">
+
+        <small>
+            THE ARIAA STORY
+        </small>
+
+        <h2>
+            Made For Moments That Matter
+        </h2>
+
+        <p>
+            At Ariaa Jewels, we believe jewelry
+            is more than an accessory.
+        </p>
+
+        <p>
+            Every piece is selected to bring
+            elegance, beauty and confidence
+            to your everyday moments and
+            special occasions.
+        </p>
+
+        <a
+            href="#collection"
+            class="gold-button"
+        >
+            VIEW COLLECTION
+        </a>
+
+    </div>
+
+</section>
+
+
+
+<!-- FOOTER -->
+
+<footer id="contact">
+
+    <div class="footer-grid">
+
+        <div>
+
+            <h3>
+                ARIAA JEWELS
+            </h3>
+
+            <p>
+                Timeless jewelry designed
+                to make every moment shine.
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <h3>
+                SHOP
+            </h3>
+
+            <a href="#collection">
+                Collection
+            </a>
+
+            <a href="#collection">
+                Necklaces
+            </a>
+
+            <a href="#collection">
+                Rings
+            </a>
+
+            <a href="#collection">
+                Earrings
+            </a>
+
+        </div>
+
+
+        <div>
+
+            <h3>
+                CONTACT
+            </h3>
+
+            <p>
+                hello@ariaajewels.com
+            </p>
+
+            <p>
+                +91 98765 43210
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="copyright">
+
+        © 2026 Ariaa Jewels.
+        All Rights Reserved.
+
+    </div>
+
+</footer>
+
+
+
+<!-- JEWEL BOX OVERLAY -->
+
+<div
+    class="overlay"
+    id="overlay"
+    onclick="closeJewelBox()"
+></div>
+
+
+
+<!-- JEWEL BOX -->
+
+<aside
+    class="jewel-box"
+    id="jewelBox"
+>
+
+    <div class="jewel-header">
+
+        <button
+            onclick="closeJewelBox()"
+        >
+            ×
+        </button>
+
+        <div class="diamond">
+            ◇
+        </div>
+
+        <h2>
+            My Jewel Box
+        </h2>
+
+        <p>
+            Your chosen treasures
+        </p>
+
+    </div>
+
+
+    <div
+        class="jewel-items"
+        id="cartItems"
+    ></div>
+
+
+    <div class="jewel-footer">
+
+        <div>
+
+            <span>
+                Collection Total
+            </span>
+
+            <strong id="cartTotal">
+                ₹0
+            </strong>
+
+        </div>
+
+
+        <button
+            onclick="checkout()"
+            class="gold-button full"
+        >
+            CONTINUE TO CHECKOUT
+        </button>
+
+    </div>
+
+</aside>
+
+
+
+<!-- SUPABASE -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<!-- YOUR SUPABASE SETTINGS -->
+
+<script src="supabase-config.js"></script>
+
+
+<!-- WEBSITE JAVASCRIPT -->
+
+<script src="script.js"></script>
+
+
+</body>
+
+</html>

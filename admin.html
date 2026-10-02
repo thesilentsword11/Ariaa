@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ariaa Jewels — Admin</title>
+
+    <link
+        rel="stylesheet"
+        href="admin.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================
+     LOGIN SCREEN
+========================================= -->
+
+<section
+    class="login-screen"
+    id="loginScreen"
+>
+
+    <div class="login-card">
+
+        <div class="admin-logo">
+            ARIAA
+            <span>JEWELS</span>
+        </div>
+
+
+        <div class="diamond">
+            ◇
+        </div>
+
+
+        <h1>
+            Admin Panel
+        </h1>
+
+
+        <p class="login-subtitle">
+            Sign in to manage your jewelry collection.
+        </p>
+
+
+        <form
+            id="loginForm"
+        >
+
+            <label>
+                Email
+            </label>
+
+            <input
+                type="email"
+                id="loginEmail"
+                placeholder="Your admin email"
+                required
+            >
+
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                id="loginPassword"
+                placeholder="Your password"
+                required
+            >
+
+
+            <button
+                type="submit"
+                class="admin-button"
+            >
+                SIGN IN
+            </button>
+
+
+            <p
+                class="login-error"
+                id="loginError"
+            ></p>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================
+     ADMIN APPLICATION
+========================================= -->
+
+<div
+    class="admin-app"
+    id="adminApp"
+>
+
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+
+            ARIAA
+
+            <span>
+                JEWELS
+            </span>
+
+        </div>
+
+
+        <div class="sidebar-title">
+
+            ADMIN PANEL
+
+        </div>
+
+
+        <nav>
+
+            <button
+                class="sidebar-link active"
+                onclick="showAdminSection('productsSection', this)"
+            >
+
+                ◇
+
+                <span>
+                    Products
+                </span>
+
+            </button>
+
+
+            <button
+                class="sidebar-link"
+                onclick="showAdminSection('addSection', this)"
+            >
+
+                +
+
+                <span>
+                    Add Product
+                </span>
+
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <a
+                href="index.html"
+                target="_blank"
+                class="view-store"
+            >
+                VIEW STORE
+            </a>
+
+
+            <button
+                class="logout-button"
+                onclick="logoutAdmin()"
+            >
+                LOG OUT
+            </button>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="admin-main">
+
+
+        <!-- TOP BAR -->
+
+        <header class="admin-header">
+
+            <div>
+
+                <p>
+                    ARIAA JEWELS
+                </p>
+
+                <h1>
+                    Collection Manager
+                </h1>
+
+            </div>
+
+
+            <div class="admin-user">
+
+                <span>
+                    ●
+                </span>
+
+                <strong id="adminEmail">
+                    Admin
+                </strong>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================
+             PRODUCTS SECTION
+        ================================= -->
+
+        <section
+            class="admin-section active-section"
+            id="productsSection"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <small>
+                        YOUR COLLECTION
+                    </small>
+
+                    <h2>
+                        Jewelry Products
+                    </h2>
+
+                </div>
+
+
+                <button
+                    class="admin-button"
+                    onclick="showAdminSection('addSection')"
+                >
+                    + ADD PRODUCT
+                </button>
+
+            </div>
+
+
+            <!-- MESSAGE -->
+
+            <div
+                class="admin-message"
+                id="adminMessage"
+            ></div>
+
+
+            <!-- PRODUCTS TABLE -->
+
+            <div class="products-table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                PRODUCT
+                            </th>
+
+                            <th>
+                                CATEGORY
+                            </th>
+
+                            <th>
+                                PRICE
+                            </th>
+
+                            <th>
+                                STATUS
+                            </th>
+
+                            <th>
+                                ACTIONS
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody
+                        id="adminProducts"
+                    >
+
+                        <tr>
+
+                            <td
+                                colspan="5"
+                                class="table-loading"
+                            >
+                                Loading products...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================
+             ADD / EDIT PRODUCT SECTION
+        ================================= -->
+
+        <section
+            class="admin-section"
+            id="addSection"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <small id="formLabel">
+                        NEW PRODUCT
+                    </small>
+
+                    <h2 id="formTitle">
+                        Add Jewelry
+                    </h2>
+
+                </div>
+
+
+                <button
+                    class="back-button"
+                    onclick="showAdminSection('productsSection')"
+                >
+                    ← BACK TO PRODUCTS
+                </button>
+
+            </div>
+
+
+            <form
+                class="product-form"
+                id="productForm"
+            >
+
+                <!-- PRODUCT ID -->
+
+                <input
+                    type="hidden"
+                    id="productId"
+                >
+
+
+                <div class="form-grid">
+
+
+                    <!-- NAME -->
+
+                    <div class="form-field full-width">
+
+                        <label>
+                            Product Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="productName"
+                            placeholder="Example: Golden Pearl Necklace"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- CATEGORY -->
+
+                    <div class="form-field">
+
+                        <label>
+                            Category
+                        </label>
+
+                        <select
+                            id="productCategory"
+                            required
+                        >
+
+                            <option value="">
+                                Select category
+                            </option>
+
+                            <option value="Necklaces">
+                                Necklaces
+                            </option>
+
+                            <option value="Rings">
+                                Rings
+                            </option>
+
+                            <option value="Earrings">
+                                Earrings
+                            </option>
+
+                            <option value="Bracelets">
+                                Bracelets
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- PRICE -->
+
+                    <div class="form-field">
+
+                        <label>
+                            Price (₹)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="productPrice"
+                            placeholder="2499"
+                            min="0"
+                            step="1"
+                            required
+                        >
+
+                    </div>
+
+
+
+                    <!-- IMAGE -->
+
+                    <div class="form-field full-width">
+
+                        <label>
+                            Product Image URL
+                        </label>
+
+                        <input
+                            type="url"
+                            id="productImage"
+                            placeholder="https://..."
+                            required
+                        >
+
+                        <small>
+                            For now, use an image URL. We can add image uploading later.
+                        </small>
+
+                    </div>
+
+
+
+                    <!-- DESCRIPTION -->
+
+                    <div class="form-field full-width">
+
+                        <label>
+                            Description
+                        </label>
+
+                        <textarea
+                            id="productDescription"
+                            rows="5"
+                            placeholder="Describe this jewelry piece..."
+                        ></textarea>
+
+                    </div>
+
+
+
+                    <!-- AVAILABLE -->
+
+                    <div class="form-field">
+
+                        <label>
+                            Product Status
+                        </label>
+
+                        <label class="switch-row">
+
+                            <input
+                                type="checkbox"
+                                id="productAvailable"
+                                checked
+                            >
+
+                            <span>
+                                Available for sale
+                            </span>
+
+                        </label>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- IMAGE PREVIEW -->
+
+                <div
+                    class="image-preview"
+                    id="imagePreview"
+                >
+
+                    <span>
+                        Image preview will appear here
+                    </span>
+
+                </div>
+
+
+
+                <!-- FORM BUTTONS -->
+
+                <div class="form-actions">
+
+                    <button
+                        type="button"
+                        class="cancel-button"
+                        onclick="resetProductForm()"
+                    >
+                        CLEAR
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        class="admin-button"
+                        id="saveProductButton"
+                    >
+                        SAVE PRODUCT
+                    </button>
+
+                </div>
+
+
+            </form>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+
+<!-- =========================================
+     SUPABASE
+========================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<script src="supabase-config.js"></script>
+
+
+<script src="admin.js"></script>
+
+
+</body>
+
+</html>
