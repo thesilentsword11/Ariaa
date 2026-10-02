@@ -6,16 +6,9 @@
 
 /*
    Supabase client
-
-   This expects supabase-config.js to create:
-
-   const supabaseClient = window.supabaseClient;
-
-   We will create that file next.
 */
 
-
-const supabase = window.supabaseClient;
+const adminClient = window.supabaseClient;
 
 
 /* =========================================
@@ -31,7 +24,7 @@ let editingProductId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-    if (!supabase) {
+    if (!adminClient) {
 
         showLoginError(
             "Supabase is not configured yet. Please create supabase-config.js."
@@ -50,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         data: {
             session
         }
-    } = await supabase.auth.getSession();
+    } = await adminClient.auth.getSession();
 
 
     if (session) {
@@ -72,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
        Listen for login/logout changes.
     */
 
-    supabase.auth.onAuthStateChange(
+    adminClient.auth.onAuthStateChange(
         (event, session) => {
 
             if (session) {
@@ -187,7 +180,7 @@ async function loginAdmin(event) {
 
     const {
         error
-    } = await supabase.auth.signInWithPassword({
+    } = await adminClient.auth.signInWithPassword({
 
         email: email,
 
@@ -345,7 +338,7 @@ async function logoutAdmin() {
     if (!confirmed) return;
 
 
-    await supabase.auth.signOut();
+    await adminClient.auth.signOut();
 
 }
 
@@ -384,7 +377,7 @@ async function loadProducts() {
     const {
         data,
         error
-    } = await supabase
+    } = await adminClient
         .from("products")
         .select("*")
         .order(
@@ -668,8 +661,8 @@ async function saveProduct(event) {
 
     /*
        Existing image URL.
-       This is useful when editing a product
-       without replacing its image.
+       Used when editing a product without
+       selecting a new image.
     */
 
     const existingImage =
@@ -696,9 +689,9 @@ async function saveProduct(event) {
             .checked;
 
 
-    /*
-       Validate product name
-    */
+    /* =========================================
+       VALIDATION
+    ========================================= */
 
     if (!name) {
 
@@ -711,10 +704,6 @@ async function saveProduct(event) {
     }
 
 
-    /*
-       Validate category
-    */
-
     if (!category) {
 
         alert(
@@ -725,10 +714,6 @@ async function saveProduct(event) {
 
     }
 
-
-    /*
-       Validate price
-    */
 
     if (
         price < 0 ||
@@ -744,14 +729,7 @@ async function saveProduct(event) {
     }
 
 
-    /*
-       Image is required for a new product.
-    */
-
-    if (
-        !image &&
-        !imageFile
-    ) {
+    if (!image && !imageFile) {
 
         alert(
             "Please choose a product image."
@@ -763,7 +741,7 @@ async function saveProduct(event) {
 
 
     /*
-       Validate selected image
+       Check selected file
     */
 
     if (imageFile) {
@@ -782,10 +760,6 @@ async function saveProduct(event) {
 
         }
 
-
-        /*
-           Maximum image size: 10 MB
-        */
 
         if (
             imageFile.size >
@@ -818,20 +792,14 @@ async function saveProduct(event) {
         : "SAVING...";
 
 
-    /*
-       =========================================
+    /* =========================================
        UPLOAD IMAGE TO SUPABASE STORAGE
-       =========================================
-
-       Bucket name:
+       
+       Bucket:
        product_image
-    */
+    ========================================= */
 
     if (imageFile) {
-
-        /*
-           Make the filename safe.
-        */
 
         const safeName =
             imageFile.name
@@ -846,11 +814,6 @@ async function saveProduct(event) {
                 );
 
 
-        /*
-           Add timestamp so files
-           do not overwrite each other.
-        */
-
         const filePath =
             `${Date.now()}-${safeName}`;
 
@@ -859,12 +822,8 @@ async function saveProduct(event) {
             "UPLOADING IMAGE...";
 
 
-        /*
-           Upload image
-        */
-
         const uploadResult =
-            await supabase.storage
+            await adminClient.storage
                 .from("product_image")
                 .upload(
                     filePath,
@@ -878,22 +837,14 @@ async function saveProduct(event) {
                 );
 
 
-        /*
-           Check upload error
-        */
-
-        if (
-            uploadResult.error
-        ) {
+        if (uploadResult.error) {
 
             console.error(
                 uploadResult.error
             );
 
 
-            button.disabled =
-                false;
-
+            button.disabled = false;
 
             button.textContent =
                 "SAVE PRODUCT";
@@ -916,7 +867,7 @@ async function saveProduct(event) {
         */
 
         const publicUrlResult =
-            supabase.storage
+            adminClient.storage
                 .from("product_image")
                 .getPublicUrl(
                     filePath
@@ -931,29 +882,23 @@ async function saveProduct(event) {
     }
 
 
-    /*
-       Product data
-    */
+    /* =========================================
+       PRODUCT DATA
+    ========================================= */
 
     const productData = {
 
-        name:
-            name,
+        name: name,
 
-        price:
-            price,
+        price: price,
 
-        category:
-            category,
+        category: category,
 
-        image:
-            image,
+        image: image,
 
-        description:
-            description,
+        description: description,
 
-        available:
-            available
+        available: available
 
     };
 
@@ -961,20 +906,16 @@ async function saveProduct(event) {
     let result;
 
 
-    /*
-       =========================================
+    /* =========================================
        EDIT EXISTING PRODUCT
-       =========================================
-    */
+    ========================================= */
 
     if (editingProductId) {
 
         result =
-            await supabase
+            await adminClient
                 .from("products")
-                .update(
-                    productData
-                )
+                .update(productData)
                 .eq(
                     "id",
                     editingProductId
@@ -983,16 +924,14 @@ async function saveProduct(event) {
     }
 
 
-    /*
-       =========================================
+    /* =========================================
        ADD NEW PRODUCT
-       =========================================
-    */
+    ========================================= */
 
     else {
 
         result =
-            await supabase
+            await adminClient
                 .from("products")
                 .insert([
                     productData
@@ -1001,17 +940,11 @@ async function saveProduct(event) {
     }
 
 
-    button.disabled =
-        false;
-
+    button.disabled = false;
 
     button.textContent =
         "SAVE PRODUCT";
 
-
-    /*
-       Check database error
-    */
 
     if (result.error) {
 
@@ -1031,10 +964,6 @@ async function saveProduct(event) {
     }
 
 
-    /*
-       Success message
-    */
-
     showAdminMessage(
         editingProductId
             ? "Product updated successfully."
@@ -1043,23 +972,11 @@ async function saveProduct(event) {
     );
 
 
-    /*
-       Reset form
-    */
-
     resetProductForm();
 
 
-    /*
-       Reload products
-    */
-
     await loadProducts();
 
-
-    /*
-       Show products section
-    */
 
     showAdminSection(
         "productsSection"
@@ -1077,7 +994,7 @@ async function editProduct(id) {
     const {
         data,
         error
-    } = await supabase
+    } = await adminClient
         .from("products")
         .select("*")
         .eq(
@@ -1089,9 +1006,7 @@ async function editProduct(id) {
 
     if (error) {
 
-        console.error(
-            error
-        );
+        console.error(error);
 
 
         showAdminMessage(
@@ -1111,8 +1026,7 @@ async function editProduct(id) {
 
     document.getElementById(
         "productId"
-    ).value =
-        id;
+    ).value = id;
 
 
     document.getElementById(
@@ -1134,7 +1048,7 @@ async function editProduct(id) {
 
 
     /*
-       Keep existing image URL.
+       Keep existing image URL
     */
 
     document.getElementById(
@@ -1144,8 +1058,7 @@ async function editProduct(id) {
 
 
     /*
-       Clear file picker.
-       User can choose a new image if desired.
+       Clear file picker when editing
     */
 
     const imageFileInput =
@@ -1156,8 +1069,7 @@ async function editProduct(id) {
 
     if (imageFileInput) {
 
-        imageFileInput.value =
-            "";
+        imageFileInput.value = "";
 
     }
 
@@ -1192,16 +1104,8 @@ async function editProduct(id) {
         "UPDATE PRODUCT";
 
 
-    /*
-       Show existing image
-    */
-
     previewProductImage();
 
-
-    /*
-       Open edit section
-    */
 
     showAdminSection(
         "addSection"
@@ -1227,7 +1131,7 @@ async function deleteProduct(id) {
 
     const {
         error
-    } = await supabase
+    } = await adminClient
         .from("products")
         .delete()
         .eq(
@@ -1238,9 +1142,7 @@ async function deleteProduct(id) {
 
     if (error) {
 
-        console.error(
-            error
-        );
+        console.error(error);
 
 
         showAdminMessage(
@@ -1290,14 +1192,12 @@ function resetProductForm() {
 
     document.getElementById(
         "productAvailable"
-    ).checked =
-        true;
+    ).checked = true;
 
 
     document.getElementById(
         "productId"
-    ).value =
-        "";
+    ).value = "";
 
 
     document.getElementById(
@@ -1369,10 +1269,6 @@ function previewProductImage() {
     if (!preview) return;
 
 
-    /*
-       Check whether a new file was selected.
-    */
-
     const file =
         fileInput &&
         fileInput.files &&
@@ -1382,7 +1278,7 @@ function previewProductImage() {
 
 
     /*
-       Preview newly selected image.
+       Preview selected local file
     */
 
     if (file) {
@@ -1409,7 +1305,7 @@ function previewProductImage() {
 
 
     /*
-       No existing image.
+       Preview existing image URL
     */
 
     if (!existingImage) {
@@ -1422,22 +1318,15 @@ function previewProductImage() {
 
         `;
 
-
         return;
 
     }
 
 
-    /*
-       Preview existing image URL.
-    */
-
     preview.innerHTML = `
 
         <img
-            src="${escapeHtml(
-                existingImage
-            )}"
+            src="${escapeHtml(existingImage)}"
             alt="Product preview"
             onerror="
                 this.parentElement.innerHTML =
@@ -1463,15 +1352,13 @@ function showAdminSection(
         .querySelectorAll(
             ".admin-section"
         )
-        .forEach(
-            section => {
+        .forEach(section => {
 
-                section.classList.remove(
-                    "active-section"
-                );
+            section.classList.remove(
+                "active-section"
+            );
 
-            }
-        );
+        });
 
 
     const section =
@@ -1493,15 +1380,13 @@ function showAdminSection(
         .querySelectorAll(
             ".sidebar-link"
         )
-        .forEach(
-            link => {
+        .forEach(link => {
 
-                link.classList.remove(
-                    "active"
-                );
+            link.classList.remove(
+                "active"
+            );
 
-            }
-        );
+        });
 
 
     if (button) {
@@ -1542,18 +1427,15 @@ function showAdminMessage(
         type;
 
 
-    setTimeout(
-        () => {
+    setTimeout(() => {
 
-            element.className =
-                "admin-message";
+        element.className =
+            "admin-message";
 
-            element.textContent =
-                "";
+        element.textContent =
+            "";
 
-        },
-        5000
-    );
+    }, 5000);
 
 }
 
@@ -1565,22 +1447,27 @@ function showAdminMessage(
 function escapeHtml(value) {
 
     return String(value)
+
         .replace(
             /&/g,
             "&amp;"
         )
+
         .replace(
             /</g,
             "&lt;"
         )
+
         .replace(
             />/g,
             "&gt;"
         )
+
         .replace(
             /"/g,
             "&quot;"
         )
+
         .replace(
             /'/g,
             "&#039;"
