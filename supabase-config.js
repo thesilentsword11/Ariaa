@@ -18,11 +18,11 @@ Supabase Dashboard
 
 
 const SUPABASE_URL =
-    "YOUR_SUPABASE_PROJECT_URL";
+    "https://naotkducdyuqyvkpztpe.supabase.co";
 
 
 const SUPABASE_ANON_KEY =
-    "YOUR_SUPABASE_ANON_KEY";
+    "sb_publishable_h1gUXjSVxqQMRs1RltZ10A_x5_XiijX";
 
 
 /*
