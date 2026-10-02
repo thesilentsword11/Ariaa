@@ -466,18 +466,22 @@
                     <div class="form-field full-width">
 
                         <label>
-                            Product Image URL
+                            Product Image
                         </label>
 
                         <input
-                            type="url"
+                            type="file"
+                            id="productImageFile"
+                            accept="image/*"
+                        >
+
+                        <input
+                            type="hidden"
                             id="productImage"
-                            placeholder="https://..."
-                            required
                         >
 
                         <small>
-                            For now, use an image URL. We can add image uploading later.
+                            Choose an image from your computer. It will be uploaded automatically to Supabase.
                         </small>
 
                     </div>
