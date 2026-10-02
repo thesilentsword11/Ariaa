@@ -768,7 +768,7 @@ async function saveProduct(event) {
 
             const uploadResult =
                 await adminClient.storage
-                    .from("product-images")
+                    .from("product_image")
                     .upload(
                         filePath,
                         imageFile,
@@ -790,7 +790,7 @@ async function saveProduct(event) {
 
             const publicUrlResult =
                 adminClient.storage
-                    .from("product-images")
+                    .from("product_image")
                     .getPublicUrl(
                         filePath
                     );
