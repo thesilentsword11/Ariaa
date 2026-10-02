@@ -3,7 +3,19 @@
    ADMIN PANEL
 ========================================= */
 
-const adminClient = window.supabaseClient;
+
+/*
+   Supabase client
+
+   This expects supabase-config.js to create:
+
+   const supabaseClient = window.supabaseClient;
+
+   We will create that file next.
+*/
+
+
+const supabase = window.supabaseClient;
 
 
 /* =========================================
@@ -19,42 +31,59 @@ let editingProductId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-    if (!adminClient) {
+    if (!supabase) {
 
         showLoginError(
             "Supabase is not configured yet. Please create supabase-config.js."
         );
 
         return;
+
     }
 
+
+    /*
+       Check whether an admin is already logged in.
+    */
 
     const {
         data: {
             session
         }
-    } = await adminClient.auth.getSession();
+    } = await supabase.auth.getSession();
 
 
     if (session) {
 
-        showAdminPanel(session.user);
+        showAdminPanel(
+            session.user
+        );
 
-    } else {
+    }
+
+    else {
 
         showLoginScreen();
 
     }
 
 
-    adminClient.auth.onAuthStateChange(
+    /*
+       Listen for login/logout changes.
+    */
+
+    supabase.auth.onAuthStateChange(
         (event, session) => {
 
             if (session) {
 
-                showAdminPanel(session.user);
+                showAdminPanel(
+                    session.user
+                );
 
-            } else {
+            }
+
+            else {
 
                 showLoginScreen();
 
@@ -63,6 +92,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     );
 
+
+    /*
+       Login form
+    */
 
     const loginForm =
         document.getElementById("loginForm");
@@ -78,6 +111,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
+    /*
+       Product form
+    */
+
     const productForm =
         document.getElementById("productForm");
 
@@ -91,6 +128,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     }
 
+
+    /*
+       Image preview
+    */
 
     const imageInput =
         document.getElementById("productImageFile");
@@ -146,7 +187,7 @@ async function loginAdmin(event) {
 
     const {
         error
-    } = await adminClient.auth.signInWithPassword({
+    } = await supabase.auth.signInWithPassword({
 
         email: email,
 
@@ -280,6 +321,10 @@ async function showAdminPanel(user) {
     }
 
 
+    /*
+       Load products after login.
+    */
+
     await loadProducts();
 
 }
@@ -300,7 +345,7 @@ async function logoutAdmin() {
     if (!confirmed) return;
 
 
-    await adminClient.auth.signOut();
+    await supabase.auth.signOut();
 
 }
 
@@ -339,7 +384,7 @@ async function loadProducts() {
     const {
         data,
         error
-    } = await adminClient
+    } = await supabase
         .from("products")
         .select("*")
         .order(
@@ -603,24 +648,39 @@ async function saveProduct(event) {
         );
 
 
-    const imageFileInput =
+    /*
+       Image file selected from computer
+    */
+
+    const imageInput =
         document.getElementById(
             "productImageFile"
         );
 
 
     const imageFile =
-        imageFileInput &&
-        imageFileInput.files
-            ? imageFileInput.files[0]
+        imageInput &&
+        imageInput.files &&
+        imageInput.files.length
+            ? imageInput.files[0]
             : null;
 
+
+    /*
+       Existing image URL.
+       This is useful when editing a product
+       without replacing its image.
+    */
 
     const existingImage =
         document
             .getElementById("productImage")
             .value
             .trim();
+
+
+    let image =
+        existingImage;
 
 
     const description =
@@ -636,6 +696,10 @@ async function saveProduct(event) {
             .checked;
 
 
+    /*
+       Validate product name
+    */
+
     if (!name) {
 
         alert(
@@ -647,6 +711,10 @@ async function saveProduct(event) {
     }
 
 
+    /*
+       Validate category
+    */
+
     if (!category) {
 
         alert(
@@ -657,6 +725,10 @@ async function saveProduct(event) {
 
     }
 
+
+    /*
+       Validate price
+    */
 
     if (
         price < 0 ||
@@ -672,10 +744,13 @@ async function saveProduct(event) {
     }
 
 
+    /*
+       Image is required for a new product.
+    */
+
     if (
-        !editingProductId &&
-        !imageFile &&
-        !existingImage
+        !image &&
+        !imageFile
     ) {
 
         alert(
@@ -687,10 +762,16 @@ async function saveProduct(event) {
     }
 
 
+    /*
+       Validate selected image
+    */
+
     if (imageFile) {
 
         if (
-            !imageFile.type.startsWith("image/")
+            !imageFile.type.startsWith(
+                "image/"
+            )
         ) {
 
             alert(
@@ -701,6 +782,10 @@ async function saveProduct(event) {
 
         }
 
+
+        /*
+           Maximum image size: 10 MB
+        */
 
         if (
             imageFile.size >
@@ -729,201 +814,256 @@ async function saveProduct(event) {
 
     button.textContent =
         editingProductId
-            ? (
-                imageFile
-                    ? "UPLOADING..."
-                    : "UPDATING..."
-            )
-            : "UPLOADING...";
+        ? "UPDATING..."
+        : "SAVING...";
 
 
-    try {
+    /*
+       =========================================
+       UPLOAD IMAGE TO SUPABASE STORAGE
+       =========================================
 
-        let image =
-            existingImage;
+       Bucket name:
+       product_image
+    */
 
+    if (imageFile) {
 
-        /* =====================================
-           UPLOAD IMAGE TO SUPABASE STORAGE
-        ===================================== */
+        /*
+           Make the filename safe.
+        */
 
-        if (imageFile) {
-
-            const safeName =
-                imageFile.name
-                    .toLowerCase()
-                    .replace(
-                        /[^a-z0-9.]+/g,
-                        "-"
-                    )
-                    .replace(
-                        /-+/g,
-                        "-"
-                    );
-
-
-            const filePath =
-                `${Date.now()}-${safeName}`;
-
-
-            const uploadResult =
-                await adminClient.storage
-                    .from("product_image")
-                    .upload(
-                        filePath,
-                        imageFile,
-                        {
-                            cacheControl: "3600",
-                            upsert: false,
-                            contentType:
-                                imageFile.type
-                        }
-                    );
+        const safeName =
+            imageFile.name
+                .toLowerCase()
+                .replace(
+                    /[^a-z0-9.]+/g,
+                    "-"
+                )
+                .replace(
+                    /-+/g,
+                    "-"
+                );
 
 
-            if (uploadResult.error) {
+        /*
+           Add timestamp so files
+           do not overwrite each other.
+        */
 
-                throw uploadResult.error;
-
-            }
-
-
-            const publicUrlResult =
-                adminClient.storage
-                    .from("product_image")
-                    .getPublicUrl(
-                        filePath
-                    );
+        const filePath =
+            `${Date.now()}-${safeName}`;
 
 
-            image =
-                publicUrlResult
-                    .data
-                    .publicUrl;
-
-        }
+        button.textContent =
+            "UPLOADING IMAGE...";
 
 
-        if (!image) {
+        /*
+           Upload image
+        */
 
-            throw new Error(
-                "Could not determine the product image URL."
+        const uploadResult =
+            await supabase.storage
+                .from("product_image")
+                .upload(
+                    filePath,
+                    imageFile,
+                    {
+                        cacheControl: "3600",
+                        upsert: false,
+                        contentType:
+                            imageFile.type
+                    }
+                );
+
+
+        /*
+           Check upload error
+        */
+
+        if (
+            uploadResult.error
+        ) {
+
+            console.error(
+                uploadResult.error
             );
 
-        }
+
+            button.disabled =
+                false;
 
 
-        /* =====================================
-           PRODUCT DATA
-        ===================================== */
-
-        const productData = {
-
-            name: name,
-
-            price: price,
-
-            category: category,
-
-            image: image,
-
-            description: description,
-
-            available: available
-
-        };
+            button.textContent =
+                "SAVE PRODUCT";
 
 
-        let result;
+            showAdminMessage(
+                "Image upload failed: " +
+                uploadResult.error.message,
+                "error"
+            );
 
 
-        /* =====================================
-           UPDATE EXISTING PRODUCT
-        ===================================== */
-
-        if (editingProductId) {
-
-            result =
-                await adminClient
-                    .from("products")
-                    .update(productData)
-                    .eq(
-                        "id",
-                        editingProductId
-                    );
+            return;
 
         }
 
 
-        /* =====================================
-           INSERT NEW PRODUCT
-        ===================================== */
+        /*
+           Get public URL
+        */
 
-        else {
-
-            result =
-                await adminClient
-                    .from("products")
-                    .insert([
-                        productData
-                    ]);
-
-        }
+        const publicUrlResult =
+            supabase.storage
+                .from("product_image")
+                .getPublicUrl(
+                    filePath
+                );
 
 
-        if (result.error) {
-
-            throw result.error;
-
-        }
-
-
-        showAdminMessage(
-
-            editingProductId
-                ? "Product updated successfully."
-                : "Product added successfully.",
-
-            "success"
-
-        );
-
-
-        resetProductForm();
-
-
-        await loadProducts();
-
-
-        showAdminSection(
-            "productsSection"
-        );
+        image =
+            publicUrlResult
+                .data
+                .publicUrl;
 
     }
 
 
-    catch (error) {
+    /*
+       Product data
+    */
 
-        console.error(error);
+    const productData = {
+
+        name:
+            name,
+
+        price:
+            price,
+
+        category:
+            category,
+
+        image:
+            image,
+
+        description:
+            description,
+
+        available:
+            available
+
+    };
+
+
+    let result;
+
+
+    /*
+       =========================================
+       EDIT EXISTING PRODUCT
+       =========================================
+    */
+
+    if (editingProductId) {
+
+        result =
+            await supabase
+                .from("products")
+                .update(
+                    productData
+                )
+                .eq(
+                    "id",
+                    editingProductId
+                );
+
+    }
+
+
+    /*
+       =========================================
+       ADD NEW PRODUCT
+       =========================================
+    */
+
+    else {
+
+        result =
+            await supabase
+                .from("products")
+                .insert([
+                    productData
+                ]);
+
+    }
+
+
+    button.disabled =
+        false;
+
+
+    button.textContent =
+        "SAVE PRODUCT";
+
+
+    /*
+       Check database error
+    */
+
+    if (result.error) {
+
+        console.error(
+            result.error
+        );
 
 
         showAdminMessage(
-            error.message ||
-            "Could not save product.",
+            result.error.message,
             "error"
         );
 
-    }
 
-
-    finally {
-
-        button.disabled = false;
-
-        button.textContent =
-            "SAVE PRODUCT";
+        return;
 
     }
+
+
+    /*
+       Success message
+    */
+
+    showAdminMessage(
+        editingProductId
+            ? "Product updated successfully."
+            : "Product added successfully.",
+        "success"
+    );
+
+
+    /*
+       Reset form
+    */
+
+    resetProductForm();
+
+
+    /*
+       Reload products
+    */
+
+    await loadProducts();
+
+
+    /*
+       Show products section
+    */
+
+    showAdminSection(
+        "productsSection"
+    );
 
 }
 
@@ -937,7 +1077,7 @@ async function editProduct(id) {
     const {
         data,
         error
-    } = await adminClient
+    } = await supabase
         .from("products")
         .select("*")
         .eq(
@@ -949,7 +1089,9 @@ async function editProduct(id) {
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
 
         showAdminMessage(
@@ -991,16 +1133,33 @@ async function editProduct(id) {
         data.price || 0;
 
 
+    /*
+       Keep existing image URL.
+    */
+
     document.getElementById(
         "productImage"
     ).value =
         data.image || "";
 
 
-    document.getElementById(
-        "productImageFile"
-    ).value =
-        "";
+    /*
+       Clear file picker.
+       User can choose a new image if desired.
+    */
+
+    const imageFileInput =
+        document.getElementById(
+            "productImageFile"
+        );
+
+
+    if (imageFileInput) {
+
+        imageFileInput.value =
+            "";
+
+    }
 
 
     document.getElementById(
@@ -1033,8 +1192,16 @@ async function editProduct(id) {
         "UPDATE PRODUCT";
 
 
+    /*
+       Show existing image
+    */
+
     previewProductImage();
 
+
+    /*
+       Open edit section
+    */
 
     showAdminSection(
         "addSection"
@@ -1060,7 +1227,7 @@ async function deleteProduct(id) {
 
     const {
         error
-    } = await adminClient
+    } = await supabase
         .from("products")
         .delete()
         .eq(
@@ -1071,7 +1238,9 @@ async function deleteProduct(id) {
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
 
         showAdminMessage(
@@ -1121,12 +1290,14 @@ function resetProductForm() {
 
     document.getElementById(
         "productAvailable"
-    ).checked = true;
+    ).checked =
+        true;
 
 
     document.getElementById(
         "productId"
-    ).value = "";
+    ).value =
+        "";
 
 
     document.getElementById(
@@ -1198,12 +1369,21 @@ function previewProductImage() {
     if (!preview) return;
 
 
+    /*
+       Check whether a new file was selected.
+    */
+
     const file =
         fileInput &&
-        fileInput.files
+        fileInput.files &&
+        fileInput.files.length
             ? fileInput.files[0]
             : null;
 
+
+    /*
+       Preview newly selected image.
+    */
 
     if (file) {
 
@@ -1228,18 +1408,17 @@ function previewProductImage() {
     }
 
 
-    if (existingImage) {
+    /*
+       No existing image.
+    */
+
+    if (!existingImage) {
 
         preview.innerHTML = `
 
-            <img
-                src="${escapeHtml(existingImage)}"
-                alt="Product preview"
-                onerror="
-                    this.parentElement.innerHTML =
-                    '<span>Could not load image</span>'
-                "
-            >
+            <span>
+                Image preview will appear here
+            </span>
 
         `;
 
@@ -1249,11 +1428,22 @@ function previewProductImage() {
     }
 
 
+    /*
+       Preview existing image URL.
+    */
+
     preview.innerHTML = `
 
-        <span>
-            Image preview will appear here
-        </span>
+        <img
+            src="${escapeHtml(
+                existingImage
+            )}"
+            alt="Product preview"
+            onerror="
+                this.parentElement.innerHTML =
+                '<span>Could not load image</span>'
+            "
+        >
 
     `;
 
@@ -1270,7 +1460,9 @@ function showAdminSection(
 ) {
 
     document
-        .querySelectorAll(".admin-section")
+        .querySelectorAll(
+            ".admin-section"
+        )
         .forEach(
             section => {
 
@@ -1298,7 +1490,9 @@ function showAdminSection(
 
 
     document
-        .querySelectorAll(".sidebar-link")
+        .querySelectorAll(
+            ".sidebar-link"
+        )
         .forEach(
             link => {
 
@@ -1371,27 +1565,22 @@ function showAdminMessage(
 function escapeHtml(value) {
 
     return String(value)
-
         .replace(
             /&/g,
             "&amp;"
         )
-
         .replace(
             /</g,
             "&lt;"
         )
-
         .replace(
             />/g,
             "&gt;"
         )
-
         .replace(
             /"/g,
             "&quot;"
         )
-
         .replace(
             /'/g,
             "&#039;"
