@@ -1,43 +1,72 @@
-/* =================================
-   ARIAA JEWELS
-   MAIN WEBSITE SCRIPT
-================================= */
-
-
-/* =================================
-   GLOBAL VARIABLES
-================================= */
-
 let products = [];
+
 let cart = [];
+
 let currentCategory = "All";
 
 
 /* =================================
-   LOAD PRODUCTS
+   LOAD PRODUCTS FROM SUPABASE
 ================================= */
 
 async function loadProducts() {
 
+    const container =
+        document.getElementById("products");
+
+    if (!container) {
+        console.error("Products container not found.");
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="loading-products">
+            Loading our collection...
+        </div>
+    `;
+
     try {
 
-        const { data, error } = await supabaseClient
+        const {
+            data,
+            error
+        } = await supabaseClient
             .from("products")
             .select("*")
-            .order("created_at", {
-                ascending: false
-            });
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
 
         if (error) {
-            console.error("Error loading products:", error);
+
+            console.error(
+                "Product loading error:",
+                error
+            );
+
+            container.innerHTML = `
+                <div class="loading-products">
+
+                    Unable to load our collection.
+
+                    <br><br>
+
+                    Please try again later.
+
+                </div>
+            `;
+
             return;
         }
 
         products = data || [];
 
-        displayProducts(products);
-
-        updateCart();
+        displayProducts(
+            currentCategory
+        );
 
     }
     catch (error) {
@@ -46,6 +75,18 @@ async function loadProducts() {
             "Unexpected product loading error:",
             error
         );
+
+        container.innerHTML = `
+            <div class="loading-products">
+
+                Unable to load our collection.
+
+                <br><br>
+
+                Please try again later.
+
+            </div>
+        `;
 
     }
 
@@ -56,79 +97,124 @@ async function loadProducts() {
    DISPLAY PRODUCTS
 ================================= */
 
-function displayProducts(productList) {
+function displayProducts(
+    category = "All"
+) {
 
-    const productGrid =
-        document.getElementById("productGrid");
+    currentCategory =
+        category;
 
-    if (!productGrid) {
+    const container =
+        document.getElementById(
+            "products"
+        );
+
+    if (!container) {
         return;
     }
 
-    productGrid.innerHTML = "";
+    let list = products;
 
-    if (!productList || productList.length === 0) {
+    if (
+        category !== "All"
+    ) {
 
-        productGrid.innerHTML = `
-            <div class="empty-products">
-                <p>No products available.</p>
+        list =
+            products.filter(
+                product =>
+                    product.category ===
+                    category
+            );
+
+    }
+
+    container.innerHTML = "";
+
+    if (list.length === 0) {
+
+        container.innerHTML = `
+            <div class="loading-products">
+
+                No products found.
+
             </div>
         `;
 
         return;
+
     }
 
-    productList.forEach(product => {
+    list.forEach(
+        product => {
 
-        const card =
-            document.createElement("div");
+            const card =
+                document.createElement(
+                    "div"
+                );
 
-        card.className = "product-card";
+            card.className =
+                "product";
 
-        card.innerHTML = `
-            <div class="product-image">
-                <img
-                    src="${escapeHtml(product.image)}"
-                    alt="${escapeHtml(product.name)}"
-                    onerror="this.style.display='none'"
-                >
-            </div>
+            card.innerHTML = `
 
-            <div class="product-info">
+                <div class="product-image">
 
-                <span class="product-category">
-                    ${escapeHtml(product.category)}
-                </span>
+                    <img
+                        src="${escapeHtml(product.image || "")}"
+                        alt="${escapeHtml(product.name)}"
+                        onerror="
+                            this.src='https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=800&q=80'
+                        "
+                    >
 
-                <h3>
-                    ${escapeHtml(product.name)}
-                </h3>
+                </div>
 
-                <p class="product-description">
-                    ${escapeHtml(product.description || "")}
-                </p>
 
-                <div class="product-bottom">
+                <div class="product-info">
 
-                    <strong class="product-price">
-                        ₹${Number(product.price).toLocaleString("en-IN")}
-                    </strong>
+                    <small>
+                        ${escapeHtml(product.category)}
+                    </small>
+
+                    <h3>
+                        ${escapeHtml(product.name)}
+                    </h3>
+
+                    <p class="price">
+                        ₹${Number(
+                            product.price
+                        ).toLocaleString("en-IN")}
+                    </p>
+
 
                     <button
-                        class="gold-button"
                         onclick="addToCart(${product.id})"
+                        class="add-button"
+                        ${
+                            !product.available
+                            ? "disabled"
+                            : ""
+                        }
                     >
-                        ADD TO JEWEL BOX
+
+                        ${
+                            product.available
+                            ? "ADD TO JEWEL BOX"
+                            : "OUT OF STOCK"
+                        }
+
                     </button>
 
                 </div>
 
-            </div>
-        `;
+            `;
 
-        productGrid.appendChild(card);
+            container.appendChild(
+                card
+            );
 
-    });
+        }
+    );
 
 }
 
@@ -137,41 +223,33 @@ function displayProducts(productList) {
    FILTER PRODUCTS
 ================================= */
 
-function filterProducts(category) {
+function filterProducts(
+    category,
+    button
+) {
 
-    currentCategory = category;
-
-    const buttons =
-        document.querySelectorAll(".filter-button");
-
-    buttons.forEach(button => {
-
-        button.classList.remove("active");
-
-        if (
-            button.textContent.trim().toLowerCase() ===
-            category.toLowerCase()
-        ) {
-            button.classList.add("active");
-        }
-
-    });
-
-    if (category === "All") {
-
-        displayProducts(products);
-
-        return;
-    }
-
-    const filtered =
-        products.filter(product =>
-            product.category &&
-            product.category.toLowerCase() ===
-            category.toLowerCase()
+    document
+        .querySelectorAll(
+            ".filter"
+        )
+        .forEach(
+            btn =>
+                btn.classList.remove(
+                    "active"
+                )
         );
 
-    displayProducts(filtered);
+    if (button) {
+
+        button.classList.add(
+            "active"
+        );
+
+    }
+
+    displayProducts(
+        category
+    );
 
 }
 
@@ -180,38 +258,48 @@ function filterProducts(category) {
    ADD TO CART
 ================================= */
 
-function addToCart(productId) {
+function addToCart(id) {
 
     const product =
-        products.find(item =>
-            Number(item.id) === Number(productId)
+        products.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
         );
 
     if (!product) {
 
-        alert("Product could not be found.");
+        return;
+
+    }
+
+    if (!product.available) {
 
         return;
+
     }
 
-    const existingItem =
-        cart.find(item =>
-            Number(item.id) === Number(productId)
+    const existing =
+        cart.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
         );
 
-    if (existingItem) {
+    if (existing) {
 
-        existingItem.quantity += 1;
+        existing.quantity++;
 
     }
+
     else {
 
         cart.push({
-            id: product.id,
-            name: product.name,
-            price: Number(product.price),
-            image: product.image,
+
+            ...product,
+
             quantity: 1
+
         });
 
     }
@@ -230,114 +318,164 @@ function addToCart(productId) {
 function updateCart() {
 
     const cartItems =
-        document.getElementById("cartItems");
+        document.getElementById(
+            "cartItems"
+        );
 
     const cartCount =
-        document.getElementById("cartCount");
+        document.getElementById(
+            "cartCount"
+        );
 
     const cartTotal =
-        document.getElementById("cartTotal");
+        document.getElementById(
+            "cartTotal"
+        );
 
     if (!cartItems) {
         return;
     }
 
+    const count =
+        cart.reduce(
+            (
+                sum,
+                item
+            ) =>
+                sum +
+                item.quantity,
+            0
+        );
+
+    if (cartCount) {
+
+        cartCount.textContent =
+            count;
+
+    }
+
+    if (
+        cart.length === 0
+    ) {
+
+        cartItems.innerHTML = `
+
+            <div class="empty-cart">
+
+                <div>
+                    ♢
+                </div>
+
+                <h3>
+                    Your Jewel Box Is Empty
+                </h3>
+
+                <p>
+                    Discover something beautiful
+                    and add your favorite pieces here.
+                </p>
+
+            </div>
+
+        `;
+
+        if (cartTotal) {
+
+            cartTotal.textContent =
+                "₹0";
+
+        }
+
+        return;
+
+    }
+
     cartItems.innerHTML = "";
 
     let total = 0;
-    let itemCount = 0;
 
-    cart.forEach(item => {
+    cart.forEach(
+        item => {
 
-        const itemTotal =
-            Number(item.price) * item.quantity;
+            total +=
+                Number(item.price) *
+                item.quantity;
 
-        total += itemTotal;
+            const row =
+                document.createElement(
+                    "div"
+                );
 
-        itemCount += item.quantity;
+            row.className =
+                "cart-item";
 
-        const cartItem =
-            document.createElement("div");
-
-        cartItem.className = "cart-item";
-
-        cartItem.innerHTML = `
-            <div class="cart-item-image">
+            row.innerHTML = `
 
                 <img
                     src="${escapeHtml(item.image || "")}"
                     alt="${escapeHtml(item.name)}"
                 >
 
-            </div>
 
-            <div class="cart-item-details">
+                <div>
 
-                <h4>
-                    ${escapeHtml(item.name)}
-                </h4>
+                    <h3>
+                        ${escapeHtml(item.name)}
+                    </h3>
 
-                <p>
-                    ₹${Number(item.price).toLocaleString("en-IN")}
-                </p>
+                    <p>
+                        ₹${Number(
+                            item.price
+                        ).toLocaleString("en-IN")}
+                    </p>
 
-                <div class="cart-quantity">
+
+                    <div class="quantity">
+
+                        <button
+                            onclick="changeQuantity(${item.id}, -1)"
+                        >
+                            −
+                        </button>
+
+                        <span>
+                            ${item.quantity}
+                        </span>
+
+                        <button
+                            onclick="changeQuantity(${item.id}, 1)"
+                        >
+                            +
+                        </button>
+
+                    </div>
+
 
                     <button
-                        onclick="changeQuantity(${item.id}, -1)"
+                        class="remove"
+                        onclick="removeFromCart(${item.id})"
                     >
-                        −
-                    </button>
-
-                    <span>
-                        ${item.quantity}
-                    </span>
-
-                    <button
-                        onclick="changeQuantity(${item.id}, 1)"
-                    >
-                        +
+                        REMOVE
                     </button>
 
                 </div>
 
-            </div>
+            `;
 
-            <button
-                class="remove-cart-item"
-                onclick="removeFromCart(${item.id})"
-                aria-label="Remove item"
-            >
-                ×
-            </button>
-        `;
+            cartItems.appendChild(
+                row
+            );
 
-        cartItems.appendChild(cartItem);
-
-    });
-
-    if (cartCount) {
-
-        cartCount.textContent =
-            itemCount;
-
-    }
+        }
+    );
 
     if (cartTotal) {
 
         cartTotal.textContent =
-            "₹" + total.toLocaleString("en-IN");
-
-    }
-
-    if (cart.length === 0) {
-
-        cartItems.innerHTML = `
-            <div class="empty-cart">
-                <p>Your Jewel Box is empty.</p>
-                <span>Add some beautiful pieces to continue.</span>
-            </div>
-        `;
+            "₹" +
+            total.toLocaleString(
+                "en-IN"
+            );
 
     }
 
@@ -348,24 +486,36 @@ function updateCart() {
    CHANGE QUANTITY
 ================================= */
 
-function changeQuantity(productId, change) {
+function changeQuantity(
+    id,
+    amount
+) {
 
     const item =
-        cart.find(item =>
-            Number(item.id) === Number(productId)
+        cart.find(
+            product =>
+                Number(product.id) ===
+                Number(id)
         );
 
     if (!item) {
+
         return;
+
     }
 
-    item.quantity += change;
+    item.quantity +=
+        amount;
 
-    if (item.quantity <= 0) {
+    if (
+        item.quantity <= 0
+    ) {
 
         cart =
-            cart.filter(item =>
-                Number(item.id) !== Number(productId)
+            cart.filter(
+                product =>
+                    Number(product.id) !==
+                    Number(id)
             );
 
     }
@@ -376,14 +526,16 @@ function changeQuantity(productId, change) {
 
 
 /* =================================
-   REMOVE FROM CART
+   REMOVE
 ================================= */
 
-function removeFromCart(productId) {
+function removeFromCart(id) {
 
     cart =
-        cart.filter(item =>
-            Number(item.id) !== Number(productId)
+        cart.filter(
+            item =>
+                Number(item.id) !==
+                Number(id)
         );
 
     updateCart();
@@ -398,20 +550,28 @@ function removeFromCart(productId) {
 function openJewelBox() {
 
     const jewelBox =
-        document.getElementById("jewelBox");
+        document.getElementById(
+            "jewelBox"
+        );
 
     const overlay =
-        document.getElementById("jewelBoxOverlay");
+        document.getElementById(
+            "overlay"
+        );
 
     if (jewelBox) {
 
-        jewelBox.classList.add("open");
+        jewelBox.classList.add(
+            "open"
+        );
 
     }
 
     if (overlay) {
 
-        overlay.classList.add("show");
+        overlay.classList.add(
+            "show"
+        );
 
     }
 
@@ -425,20 +585,28 @@ function openJewelBox() {
 function closeJewelBox() {
 
     const jewelBox =
-        document.getElementById("jewelBox");
+        document.getElementById(
+            "jewelBox"
+        );
 
     const overlay =
-        document.getElementById("jewelBoxOverlay");
+        document.getElementById(
+            "overlay"
+        );
 
     if (jewelBox) {
 
-        jewelBox.classList.remove("open");
+        jewelBox.classList.remove(
+            "open"
+        );
 
     }
 
     if (overlay) {
 
-        overlay.classList.remove("show");
+        overlay.classList.remove(
+            "show"
+        );
 
     }
 
@@ -451,67 +619,104 @@ function closeJewelBox() {
 
 function checkout() {
 
-    if (cart.length === 0) {
+    if (
+        cart.length === 0
+    ) {
 
-        alert("Your Jewel Box is empty.");
-
-        return;
-    }
-
-    const checkoutItems =
-        document.getElementById("checkoutItems");
-
-    const checkoutTotal =
-        document.getElementById("checkoutTotal");
-
-    if (!checkoutItems || !checkoutTotal) {
-
-        console.error(
-            "Checkout elements were not found."
+        alert(
+            "Your Jewel Box is empty."
         );
 
         return;
+
     }
 
-    checkoutItems.innerHTML = "";
+    const checkoutItems =
+        document.getElementById(
+            "checkoutItems"
+        );
+
+    const checkoutTotal =
+        document.getElementById(
+            "checkoutTotal"
+        );
+
+    if (
+        !checkoutItems ||
+        !checkoutTotal
+    ) {
+
+        console.error(
+            "Checkout elements not found."
+        );
+
+        return;
+
+    }
+
+    checkoutItems.innerHTML =
+        "";
 
     let total = 0;
 
-    cart.forEach(item => {
+    cart.forEach(
+        item => {
 
-        const itemTotal =
-            Number(item.price) * item.quantity;
+            const itemTotal =
+                Number(item.price) *
+                item.quantity;
 
-        total += itemTotal;
+            total +=
+                itemTotal;
 
-        const row =
-            document.createElement("div");
+            const row =
+                document.createElement(
+                    "div"
+                );
 
-        row.className = "checkout-item";
+            row.className =
+                "checkout-item";
 
-        row.innerHTML = `
-            <span>
-                ${escapeHtml(item.name)} × ${item.quantity}
-            </span>
+            row.innerHTML = `
 
-            <strong>
-                ₹${itemTotal.toLocaleString("en-IN")}
-            </strong>
-        `;
+                <span>
+                    ${escapeHtml(item.name)}
+                    × ${item.quantity}
+                </span>
 
-        checkoutItems.appendChild(row);
+                <strong>
+                    ₹${itemTotal.toLocaleString("en-IN")}
+                </strong>
 
-    });
+            `;
+
+            checkoutItems.appendChild(
+                row
+            );
+
+        }
+    );
 
     checkoutTotal.textContent =
-        "₹" + total.toLocaleString("en-IN");
+        "₹" +
+        total.toLocaleString(
+            "en-IN"
+        );
+
+    /* Close Jewel Box first */
+
+    closeJewelBox();
 
     const checkoutOverlay =
-        document.getElementById("checkoutOverlay");
+        document.getElementById(
+            "checkoutOverlay"
+        );
 
     if (checkoutOverlay) {
 
-        checkoutOverlay.classList.add("show");
+        checkoutOverlay.classList.add(
+            "show"
+        );
 
     }
 
@@ -525,11 +730,15 @@ function checkout() {
 function closeCheckout() {
 
     const checkoutOverlay =
-        document.getElementById("checkoutOverlay");
+        document.getElementById(
+            "checkoutOverlay"
+        );
 
     if (checkoutOverlay) {
 
-        checkoutOverlay.classList.remove("show");
+        checkoutOverlay.classList.remove(
+            "show"
+        );
 
     }
 
@@ -542,23 +751,35 @@ function closeCheckout() {
 
 function generateOrderId() {
 
-    const now = new Date();
+    const now =
+        new Date();
 
     const year =
         now.getFullYear();
 
     const month =
-        String(now.getMonth() + 1)
-            .padStart(2, "0");
+        String(
+            now.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        );
 
     const day =
-        String(now.getDate())
-            .padStart(2, "0");
+        String(
+            now.getDate()
+        ).padStart(
+            2,
+            "0"
+        );
 
     const random =
         Math.random()
             .toString(36)
-            .substring(2, 6)
+            .substring(
+                2,
+                6
+            )
             .toUpperCase();
 
     return `ARIAA-${year}${month}${day}-${random}`;
@@ -570,23 +791,33 @@ function generateOrderId() {
    PLACE ORDER
 ================================= */
 
-async function placeOrder(event) {
+async function placeOrder(
+    event
+) {
 
     event.preventDefault();
 
-    if (cart.length === 0) {
+    if (
+        cart.length === 0
+    ) {
 
-        alert("Your Jewel Box is empty.");
+        alert(
+            "Your Jewel Box is empty."
+        );
 
         return;
+
     }
 
     const button =
-        document.getElementById("placeOrderButton");
+        document.getElementById(
+            "placeOrderButton"
+        );
 
     if (button) {
 
-        button.disabled = true;
+        button.disabled =
+            true;
 
         button.textContent =
             "PLACING ORDER...";
@@ -597,58 +828,77 @@ async function placeOrder(event) {
 
         const customerName =
             document
-                .getElementById("customerName")
+                .getElementById(
+                    "customerName"
+                )
                 .value
                 .trim();
 
         const customerPhone =
             document
-                .getElementById("customerPhone")
+                .getElementById(
+                    "customerPhone"
+                )
                 .value
                 .trim();
 
         const customerEmail =
             document
-                .getElementById("customerEmail")
+                .getElementById(
+                    "customerEmail"
+                )
                 .value
                 .trim();
 
         const customerAddress =
             document
-                .getElementById("customerAddress")
+                .getElementById(
+                    "customerAddress"
+                )
                 .value
                 .trim();
 
         const customerCity =
             document
-                .getElementById("customerCity")
+                .getElementById(
+                    "customerCity"
+                )
                 .value
                 .trim();
 
         const customerState =
             document
-                .getElementById("customerState")
+                .getElementById(
+                    "customerState"
+                )
                 .value
                 .trim();
 
         const customerPincode =
             document
-                .getElementById("customerPincode")
+                .getElementById(
+                    "customerPincode"
+                )
                 .value
                 .trim();
 
 
         /* =============================
-           VALIDATE PHONE
+           VALIDATE MOBILE
         ============================= */
 
-        if (!/^[0-9]{10}$/.test(customerPhone)) {
+        if (
+            !/^[0-9]{10}$/.test(
+                customerPhone
+            )
+        ) {
 
             alert(
                 "Please enter a valid 10-digit mobile number."
             );
 
             return;
+
         }
 
 
@@ -656,13 +906,18 @@ async function placeOrder(event) {
            VALIDATE PINCODE
         ============================= */
 
-        if (!/^[0-9]{6}$/.test(customerPincode)) {
+        if (
+            !/^[0-9]{6}$/.test(
+                customerPincode
+            )
+        ) {
 
             alert(
                 "Please enter a valid 6-digit PIN code."
             );
 
             return;
+
         }
 
 
@@ -674,33 +929,43 @@ async function placeOrder(event) {
 
 
         /* =============================
-           PREPARE ORDER ITEMS
+           PREPARE ITEMS
         ============================= */
 
         const orderItems =
-            cart.map(item => {
+            cart.map(
+                item => {
 
-                const itemTotal =
-                    Number(item.price) *
-                    item.quantity;
+                    const itemTotal =
+                        Number(item.price) *
+                        item.quantity;
 
-                total += itemTotal;
+                    total +=
+                        itemTotal;
 
-                return {
+                    return {
 
-                    product_id: item.id,
+                        product_id:
+                            item.id,
 
-                    name: item.name,
+                        name:
+                            item.name,
 
-                    price: Number(item.price),
+                        price:
+                            Number(
+                                item.price
+                            ),
 
-                    quantity: item.quantity,
+                        quantity:
+                            item.quantity,
 
-                    image: item.image || ""
+                        image:
+                            item.image || ""
 
-                };
+                    };
 
-            });
+                }
+            );
 
 
         /* =============================
@@ -712,54 +977,57 @@ async function placeOrder(event) {
 
 
         /* =============================
-           INSERT ORDER
+           SAVE ORDER TO SUPABASE
         ============================= */
 
-        const { error } =
-            await supabaseClient
-                .from("orders")
-                .insert({
+        const {
+            error
+        } = await supabaseClient
+            .from("orders")
+            .insert({
 
-                    order_id: orderId,
+                order_id:
+                    orderId,
 
-                    customer_name:
-                        customerName,
+                customer_name:
+                    customerName,
 
-                    customer_phone:
-                        customerPhone,
+                customer_phone:
+                    customerPhone,
 
-                    customer_email:
-                        customerEmail || null,
+                customer_email:
+                    customerEmail ||
+                    null,
 
-                    address:
-                        customerAddress,
+                address:
+                    customerAddress,
 
-                    city:
-                        customerCity,
+                city:
+                    customerCity,
 
-                    state:
-                        customerState,
+                state:
+                    customerState,
 
-                    pincode:
-                        customerPincode,
+                pincode:
+                    customerPincode,
 
-                    items:
-                        orderItems,
+                items:
+                    orderItems,
 
-                    total_amount:
-                        total,
+                total_amount:
+                    total,
 
-                    payment_status:
-                        "pending",
+                payment_status:
+                    "pending",
 
-                    order_status:
-                        "awaiting_confirmation"
+                order_status:
+                    "awaiting_confirmation"
 
-                });
+            });
 
 
         /* =============================
-           HANDLE DATABASE ERROR
+           DATABASE ERROR
         ============================= */
 
         if (error) {
@@ -775,7 +1043,7 @@ async function placeOrder(event) {
 
 
         /* =============================
-           SHOW CONFIRMATION
+           SHOW ORDER ID
         ============================= */
 
         const confirmationOrderId =
@@ -783,7 +1051,9 @@ async function placeOrder(event) {
                 "confirmationOrderId"
             );
 
-        if (confirmationOrderId) {
+        if (
+            confirmationOrderId
+        ) {
 
             confirmationOrderId.textContent =
                 orderId;
@@ -807,7 +1077,9 @@ async function placeOrder(event) {
                 "confirmationOverlay"
             );
 
-        if (confirmationOverlay) {
+        if (
+            confirmationOverlay
+        ) {
 
             confirmationOverlay.classList.add(
                 "show"
@@ -826,7 +1098,7 @@ async function placeOrder(event) {
 
 
         /* =============================
-           RESET CHECKOUT FORM
+           RESET FORM
         ============================= */
 
         const checkoutForm =
@@ -834,7 +1106,9 @@ async function placeOrder(event) {
                 "checkoutForm"
             );
 
-        if (checkoutForm) {
+        if (
+            checkoutForm
+        ) {
 
             checkoutForm.reset();
 
@@ -857,7 +1131,8 @@ async function placeOrder(event) {
 
         if (button) {
 
-            button.disabled = false;
+            button.disabled =
+                false;
 
             button.textContent =
                 "PLACE ORDER";
@@ -880,7 +1155,9 @@ function closeConfirmation() {
             "confirmationOverlay"
         );
 
-    if (confirmationOverlay) {
+    if (
+        confirmationOverlay
+    ) {
 
         confirmationOverlay.classList.remove(
             "show"
@@ -892,29 +1169,52 @@ function closeConfirmation() {
 
 
 /* =================================
-   ESCAPE HTML
+   SIMPLE HTML ESCAPING
 ================================= */
 
 function escapeHtml(value) {
 
-    if (value === null || value === undefined) {
+    if (
+        value === null ||
+        value === undefined
+    ) {
 
         return "";
 
     }
 
     return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 
 }
 
 
 /* =================================
-   CLOSE CART WHEN OVERLAY CLICKED
+   CLOSE JEWEL BOX USING OVERLAY
 ================================= */
 
 document.addEventListener(
@@ -923,7 +1223,7 @@ document.addEventListener(
 
         const overlay =
             document.getElementById(
-                "jewelBoxOverlay"
+                "overlay"
             );
 
         if (
@@ -940,7 +1240,7 @@ document.addEventListener(
 
 
 /* =================================
-   CLOSE CHECKOUT WHEN CLICKING OUTSIDE
+   CLOSE CHECKOUT OUTSIDE BOX
 ================================= */
 
 document.addEventListener(
@@ -952,15 +1252,9 @@ document.addEventListener(
                 "checkoutOverlay"
             );
 
-        const box =
-            document.querySelector(
-                ".checkout-box"
-            );
-
         if (
             overlay &&
-            event.target === overlay &&
-            box
+            event.target === overlay
         ) {
 
             closeCheckout();
@@ -972,7 +1266,7 @@ document.addEventListener(
 
 
 /* =================================
-   CLOSE CONFIRMATION WHEN CLICKING OUTSIDE
+   CLOSE CONFIRMATION OUTSIDE BOX
 ================================= */
 
 document.addEventListener(
@@ -984,15 +1278,9 @@ document.addEventListener(
                 "confirmationOverlay"
             );
 
-        const box =
-            document.querySelector(
-                ".confirmation-box"
-            );
-
         if (
             overlay &&
-            event.target === overlay &&
-            box
+            event.target === overlay
         ) {
 
             closeConfirmation();
@@ -1011,15 +1299,17 @@ document.addEventListener(
     "keydown",
     function(event) {
 
-        if (event.key !== "Escape") {
-            return;
+        if (
+            event.key === "Escape"
+        ) {
+
+            closeJewelBox();
+
+            closeCheckout();
+
+            closeConfirmation();
+
         }
-
-        closeJewelBox();
-
-        closeCheckout();
-
-        closeConfirmation();
 
     }
 );
