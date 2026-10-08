@@ -1,303 +1,226 @@
+/* =================================
+   ARIAA JEWELS
+   MAIN WEBSITE SCRIPT
+================================= */
+
+
+/* =================================
+   GLOBAL VARIABLES
+================================= */
+
 let products = [];
-
 let cart = [];
-
 let currentCategory = "All";
 
 
 /* =================================
-   LOAD PRODUCTS FROM SUPABASE
+   LOAD PRODUCTS
 ================================= */
 
 async function loadProducts() {
 
-    const container =
-        document.getElementById("products");
+    try {
 
-
-    container.innerHTML = `
-        <div class="loading-products">
-            Loading our collection...
-        </div>
-    `;
-
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-        .from("products")
-        .select("*")
-        .order(
-            "created_at",
-            {
+        const { data, error } = await supabaseClient
+            .from("products")
+            .select("*")
+            .order("created_at", {
                 ascending: false
-            }
-        );
+            });
 
+        if (error) {
+            console.error("Error loading products:", error);
+            return;
+        }
 
-    if (error) {
+        products = data || [];
+
+        displayProducts(products);
+
+        updateCart();
+
+    }
+    catch (error) {
 
         console.error(
-            "Product loading error:",
+            "Unexpected product loading error:",
             error
         );
 
-
-        container.innerHTML = `
-            <div class="loading-products">
-
-                Unable to load our collection.
-
-                <br><br>
-
-                Please try again later.
-
-            </div>
-        `;
-
-        return;
     }
 
-
-    products = data || [];
-
-
-    displayProducts(
-        currentCategory
-    );
-
 }
-
 
 
 /* =================================
    DISPLAY PRODUCTS
 ================================= */
 
-function displayProducts(
-    category = "All"
-) {
+function displayProducts(productList) {
 
-    currentCategory =
-        category;
+    const productGrid =
+        document.getElementById("productGrid");
 
-
-    const container =
-        document.getElementById(
-            "products"
-        );
-
-
-    let list = products;
-
-
-    if (
-        category !== "All"
-    ) {
-
-        list =
-            products.filter(
-                product =>
-                    product.category ===
-                    category
-            );
-
+    if (!productGrid) {
+        return;
     }
 
+    productGrid.innerHTML = "";
 
-    container.innerHTML = "";
+    if (!productList || productList.length === 0) {
 
-
-    if (list.length === 0) {
-
-        container.innerHTML = `
-            <div class="loading-products">
-
-                No products found.
-
+        productGrid.innerHTML = `
+            <div class="empty-products">
+                <p>No products available.</p>
             </div>
         `;
 
         return;
-
     }
 
+    productList.forEach(product => {
 
-    list.forEach(
-        product => {
+        const card =
+            document.createElement("div");
 
-            const card =
-                document.createElement(
-                    "div"
-                );
+        card.className = "product-card";
 
+        card.innerHTML = `
+            <div class="product-image">
+                <img
+                    src="${escapeHtml(product.image)}"
+                    alt="${escapeHtml(product.name)}"
+                    onerror="this.style.display='none'"
+                >
+            </div>
 
-            card.className =
-                "product";
+            <div class="product-info">
 
+                <span class="product-category">
+                    ${escapeHtml(product.category)}
+                </span>
 
-            card.innerHTML = `
+                <h3>
+                    ${escapeHtml(product.name)}
+                </h3>
 
-                <div class="product-image">
+                <p class="product-description">
+                    ${escapeHtml(product.description || "")}
+                </p>
 
-                    <img
-                        src="${escapeHtml(product.image || "")}"
-                        alt="${escapeHtml(product.name)}"
-                        onerror="
-                            this.src='https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=800&q=80'
-                        "
-                    >
+                <div class="product-bottom">
 
-                </div>
-
-
-                <div class="product-info">
-
-                    <small>
-                        ${escapeHtml(product.category)}
-                    </small>
-
-                    <h3>
-                        ${escapeHtml(product.name)}
-                    </h3>
-
-                    <p class="price">
-                        ₹${Number(
-                            product.price
-                        ).toLocaleString("en-IN")}
-                    </p>
-
+                    <strong class="product-price">
+                        ₹${Number(product.price).toLocaleString("en-IN")}
+                    </strong>
 
                     <button
+                        class="gold-button"
                         onclick="addToCart(${product.id})"
-                        class="add-button"
-                        ${
-                            !product.available
-                            ? "disabled"
-                            : ""
-                        }
                     >
-
-                        ${
-                            product.available
-                            ? "ADD TO JEWEL BOX"
-                            : "OUT OF STOCK"
-                        }
-
+                        ADD TO JEWEL BOX
                     </button>
 
                 </div>
 
-            `;
+            </div>
+        `;
 
+        productGrid.appendChild(card);
 
-            container.appendChild(
-                card
-            );
-
-        }
-    );
+    });
 
 }
-
 
 
 /* =================================
    FILTER PRODUCTS
 ================================= */
 
-function filterProducts(
-    category,
-    button
-) {
+function filterProducts(category) {
 
-    document
-        .querySelectorAll(
-            ".filter"
-        )
-        .forEach(
-            btn =>
-                btn.classList.remove(
-                    "active"
-                )
+    currentCategory = category;
+
+    const buttons =
+        document.querySelectorAll(".filter-button");
+
+    buttons.forEach(button => {
+
+        button.classList.remove("active");
+
+        if (
+            button.textContent.trim().toLowerCase() ===
+            category.toLowerCase()
+        ) {
+            button.classList.add("active");
+        }
+
+    });
+
+    if (category === "All") {
+
+        displayProducts(products);
+
+        return;
+    }
+
+    const filtered =
+        products.filter(product =>
+            product.category &&
+            product.category.toLowerCase() ===
+            category.toLowerCase()
         );
 
-
-    button.classList.add(
-        "active"
-    );
-
-
-    displayProducts(
-        category
-    );
+    displayProducts(filtered);
 
 }
-
 
 
 /* =================================
    ADD TO CART
 ================================= */
 
-function addToCart(id) {
+function addToCart(productId) {
 
     const product =
-        products.find(
-            item =>
-                Number(item.id) ===
-                Number(id)
+        products.find(item =>
+            Number(item.id) === Number(productId)
         );
-
 
     if (!product) {
 
-        return;
-
-    }
-
-
-    if (!product.available) {
+        alert("Product could not be found.");
 
         return;
-
     }
 
-
-    const existing =
-        cart.find(
-            item =>
-                Number(item.id) ===
-                Number(id)
+    const existingItem =
+        cart.find(item =>
+            Number(item.id) === Number(productId)
         );
 
+    if (existingItem) {
 
-    if (existing) {
-
-        existing.quantity++;
+        existingItem.quantity += 1;
 
     }
-
     else {
 
         cart.push({
-
-            ...product,
-
+            id: product.id,
+            name: product.name,
+            price: Number(product.price),
+            image: product.image,
             quantity: 1
-
         });
 
     }
-
 
     updateCart();
 
     openJewelBox();
 
 }
-
 
 
 /* =================================
@@ -307,230 +230,165 @@ function addToCart(id) {
 function updateCart() {
 
     const cartItems =
-        document.getElementById(
-            "cartItems"
-        );
+        document.getElementById("cartItems");
 
+    const cartCount =
+        document.getElementById("cartCount");
 
-    const count =
-        cart.reduce(
-            (
-                sum,
-                item
-            ) =>
-                sum +
-                item.quantity,
-            0
-        );
+    const cartTotal =
+        document.getElementById("cartTotal");
 
-
-    document.getElementById(
-        "cartCount"
-    ).textContent =
-        count;
-
-
-    if (
-        cart.length === 0
-    ) {
-
-        cartItems.innerHTML = `
-
-            <div class="empty-cart">
-
-                <div>
-                    ♢
-                </div>
-
-                <h3>
-                    Your Jewel Box Is Empty
-                </h3>
-
-                <p>
-                    Discover something beautiful
-                    and add your favorite pieces here.
-                </p>
-
-            </div>
-
-        `;
-
-
-        document.getElementById(
-            "cartTotal"
-        ).textContent =
-            "₹0";
-
-
+    if (!cartItems) {
         return;
-
     }
-
 
     cartItems.innerHTML = "";
 
-
     let total = 0;
+    let itemCount = 0;
 
+    cart.forEach(item => {
 
-    cart.forEach(
-        item => {
+        const itemTotal =
+            Number(item.price) * item.quantity;
 
-            total +=
-                Number(item.price) *
-                item.quantity;
+        total += itemTotal;
 
+        itemCount += item.quantity;
 
-            const row =
-                document.createElement(
-                    "div"
-                );
+        const cartItem =
+            document.createElement("div");
 
+        cartItem.className = "cart-item";
 
-            row.className =
-                "cart-item";
-
-
-            row.innerHTML = `
+        cartItem.innerHTML = `
+            <div class="cart-item-image">
 
                 <img
                     src="${escapeHtml(item.image || "")}"
                     alt="${escapeHtml(item.name)}"
                 >
 
+            </div>
 
-                <div>
+            <div class="cart-item-details">
 
-                    <h3>
-                        ${escapeHtml(item.name)}
-                    </h3>
+                <h4>
+                    ${escapeHtml(item.name)}
+                </h4>
 
-                    <p>
-                        ₹${Number(
-                            item.price
-                        ).toLocaleString("en-IN")}
-                    </p>
+                <p>
+                    ₹${Number(item.price).toLocaleString("en-IN")}
+                </p>
 
-
-                    <div class="quantity">
-
-                        <button
-                            onclick="changeQuantity(${item.id}, -1)"
-                        >
-                            −
-                        </button>
-
-                        <span>
-                            ${item.quantity}
-                        </span>
-
-                        <button
-                            onclick="changeQuantity(${item.id}, 1)"
-                        >
-                            +
-                        </button>
-
-                    </div>
-
+                <div class="cart-quantity">
 
                     <button
-                        class="remove"
-                        onclick="removeFromCart(${item.id})"
+                        onclick="changeQuantity(${item.id}, -1)"
                     >
-                        REMOVE
+                        −
+                    </button>
+
+                    <span>
+                        ${item.quantity}
+                    </span>
+
+                    <button
+                        onclick="changeQuantity(${item.id}, 1)"
+                    >
+                        +
                     </button>
 
                 </div>
 
-            `;
+            </div>
 
+            <button
+                class="remove-cart-item"
+                onclick="removeFromCart(${item.id})"
+                aria-label="Remove item"
+            >
+                ×
+            </button>
+        `;
 
-            cartItems.appendChild(
-                row
-            );
+        cartItems.appendChild(cartItem);
 
-        }
-    );
+    });
 
+    if (cartCount) {
 
-    document.getElementById(
-        "cartTotal"
-    ).textContent =
-        "₹" +
-        total.toLocaleString(
-            "en-IN"
-        );
+        cartCount.textContent =
+            itemCount;
+
+    }
+
+    if (cartTotal) {
+
+        cartTotal.textContent =
+            "₹" + total.toLocaleString("en-IN");
+
+    }
+
+    if (cart.length === 0) {
+
+        cartItems.innerHTML = `
+            <div class="empty-cart">
+                <p>Your Jewel Box is empty.</p>
+                <span>Add some beautiful pieces to continue.</span>
+            </div>
+        `;
+
+    }
 
 }
-
 
 
 /* =================================
    CHANGE QUANTITY
 ================================= */
 
-function changeQuantity(
-    id,
-    amount
-) {
+function changeQuantity(productId, change) {
 
     const item =
-        cart.find(
-            product =>
-                Number(product.id) ===
-                Number(id)
+        cart.find(item =>
+            Number(item.id) === Number(productId)
         );
 
-
     if (!item) {
-
         return;
-
     }
 
+    item.quantity += change;
 
-    item.quantity +=
-        amount;
-
-
-    if (
-        item.quantity <= 0
-    ) {
+    if (item.quantity <= 0) {
 
         cart =
-            cart.filter(
-                product =>
-                    Number(product.id) !==
-                    Number(id)
+            cart.filter(item =>
+                Number(item.id) !== Number(productId)
             );
 
     }
 
-
     updateCart();
 
 }
-
 
 
 /* =================================
-   REMOVE
+   REMOVE FROM CART
 ================================= */
 
-function removeFromCart(id) {
+function removeFromCart(productId) {
 
     cart =
-        cart.filter(
-            item =>
-                Number(item.id) !==
-                Number(id)
+        cart.filter(item =>
+            Number(item.id) !== Number(productId)
         );
-
 
     updateCart();
 
 }
-
 
 
 /* =================================
@@ -539,25 +397,25 @@ function removeFromCart(id) {
 
 function openJewelBox() {
 
-    document
-        .getElementById(
-            "jewelBox"
-        )
-        .classList.add(
-            "open"
-        );
+    const jewelBox =
+        document.getElementById("jewelBox");
 
+    const overlay =
+        document.getElementById("jewelBoxOverlay");
 
-    document
-        .getElementById(
-            "overlay"
-        )
-        .classList.add(
-            "show"
-        );
+    if (jewelBox) {
+
+        jewelBox.classList.add("open");
+
+    }
+
+    if (overlay) {
+
+        overlay.classList.add("show");
+
+    }
 
 }
-
 
 
 /* =================================
@@ -566,144 +424,609 @@ function openJewelBox() {
 
 function closeJewelBox() {
 
-    document
-        .getElementById(
-            "jewelBox"
-        )
-        .classList.remove(
-            "open"
-        );
+    const jewelBox =
+        document.getElementById("jewelBox");
 
+    const overlay =
+        document.getElementById("jewelBoxOverlay");
 
-    document
-        .getElementById(
-            "overlay"
-        )
-        .classList.remove(
-            "show"
-        );
+    if (jewelBox) {
+
+        jewelBox.classList.remove("open");
+
+    }
+
+    if (overlay) {
+
+        overlay.classList.remove("show");
+
+    }
 
 }
 
 
-
 /* =================================
-   WHATSAPP CHECKOUT
+   OPEN CHECKOUT
 ================================= */
 
 function checkout() {
 
-    if (
-        cart.length === 0
-    ) {
+    if (cart.length === 0) {
 
-        alert(
-            "Your Jewel Box is empty."
+        alert("Your Jewel Box is empty.");
+
+        return;
+    }
+
+    const checkoutItems =
+        document.getElementById("checkoutItems");
+
+    const checkoutTotal =
+        document.getElementById("checkoutTotal");
+
+    if (!checkoutItems || !checkoutTotal) {
+
+        console.error(
+            "Checkout elements were not found."
         );
 
         return;
-
     }
 
+    checkoutItems.innerHTML = "";
 
-    let message =
-        "Hello Ariaa Jewels!%0A%0A" +
-        "I would like to order:%0A";
+    let total = 0;
 
+    cart.forEach(item => {
 
-    cart.forEach(
-        item => {
+        const itemTotal =
+            Number(item.price) * item.quantity;
 
-            message +=
-                "%0A• " +
-                encodeURIComponent(
-                    item.name
-                ) +
-                " × " +
-                item.quantity;
+        total += itemTotal;
 
-        }
-    );
+        const row =
+            document.createElement("div");
 
+        row.className = "checkout-item";
 
-    const total =
-        cart.reduce(
-            (
-                sum,
-                item
-            ) =>
-                sum +
-                Number(item.price) *
-                item.quantity,
-            0
-        );
+        row.innerHTML = `
+            <span>
+                ${escapeHtml(item.name)} × ${item.quantity}
+            </span>
 
+            <strong>
+                ₹${itemTotal.toLocaleString("en-IN")}
+            </strong>
+        `;
 
-    message +=
-        "%0A%0ATotal: ₹" +
-        total.toLocaleString(
-            "en-IN"
-        );
+        checkoutItems.appendChild(row);
 
+    });
 
-    /*
-       CHANGE THIS TO YOUR
-       WHATSAPP NUMBER.
+    checkoutTotal.textContent =
+        "₹" + total.toLocaleString("en-IN");
 
-       India example:
-       919876543210
-    */
+    const checkoutOverlay =
+        document.getElementById("checkoutOverlay");
 
-    const phone =
-        "919876543210";
+    if (checkoutOverlay) {
 
+        checkoutOverlay.classList.add("show");
 
-    window.open(
-        "https://wa.me/" +
-        phone +
-        "?text=" +
-        message,
-        "_blank"
-    );
+    }
 
 }
 
 
+/* =================================
+   CLOSE CHECKOUT
+================================= */
+
+function closeCheckout() {
+
+    const checkoutOverlay =
+        document.getElementById("checkoutOverlay");
+
+    if (checkoutOverlay) {
+
+        checkoutOverlay.classList.remove("show");
+
+    }
+
+}
+
 
 /* =================================
-   SIMPLE HTML ESCAPING
+   GENERATE ORDER ID
+================================= */
+
+function generateOrderId() {
+
+    const now = new Date();
+
+    const year =
+        now.getFullYear();
+
+    const month =
+        String(now.getMonth() + 1)
+            .padStart(2, "0");
+
+    const day =
+        String(now.getDate())
+            .padStart(2, "0");
+
+    const random =
+        Math.random()
+            .toString(36)
+            .substring(2, 6)
+            .toUpperCase();
+
+    return `ARIAA-${year}${month}${day}-${random}`;
+
+}
+
+
+/* =================================
+   PLACE ORDER
+================================= */
+
+async function placeOrder(event) {
+
+    event.preventDefault();
+
+    if (cart.length === 0) {
+
+        alert("Your Jewel Box is empty.");
+
+        return;
+    }
+
+    const button =
+        document.getElementById("placeOrderButton");
+
+    if (button) {
+
+        button.disabled = true;
+
+        button.textContent =
+            "PLACING ORDER...";
+
+    }
+
+    try {
+
+        const customerName =
+            document
+                .getElementById("customerName")
+                .value
+                .trim();
+
+        const customerPhone =
+            document
+                .getElementById("customerPhone")
+                .value
+                .trim();
+
+        const customerEmail =
+            document
+                .getElementById("customerEmail")
+                .value
+                .trim();
+
+        const customerAddress =
+            document
+                .getElementById("customerAddress")
+                .value
+                .trim();
+
+        const customerCity =
+            document
+                .getElementById("customerCity")
+                .value
+                .trim();
+
+        const customerState =
+            document
+                .getElementById("customerState")
+                .value
+                .trim();
+
+        const customerPincode =
+            document
+                .getElementById("customerPincode")
+                .value
+                .trim();
+
+
+        /* =============================
+           VALIDATE PHONE
+        ============================= */
+
+        if (!/^[0-9]{10}$/.test(customerPhone)) {
+
+            alert(
+                "Please enter a valid 10-digit mobile number."
+            );
+
+            return;
+        }
+
+
+        /* =============================
+           VALIDATE PINCODE
+        ============================= */
+
+        if (!/^[0-9]{6}$/.test(customerPincode)) {
+
+            alert(
+                "Please enter a valid 6-digit PIN code."
+            );
+
+            return;
+        }
+
+
+        /* =============================
+           CALCULATE TOTAL
+        ============================= */
+
+        let total = 0;
+
+
+        /* =============================
+           PREPARE ORDER ITEMS
+        ============================= */
+
+        const orderItems =
+            cart.map(item => {
+
+                const itemTotal =
+                    Number(item.price) *
+                    item.quantity;
+
+                total += itemTotal;
+
+                return {
+
+                    product_id: item.id,
+
+                    name: item.name,
+
+                    price: Number(item.price),
+
+                    quantity: item.quantity,
+
+                    image: item.image || ""
+
+                };
+
+            });
+
+
+        /* =============================
+           GENERATE ORDER ID
+        ============================= */
+
+        const orderId =
+            generateOrderId();
+
+
+        /* =============================
+           INSERT ORDER
+        ============================= */
+
+        const { error } =
+            await supabaseClient
+                .from("orders")
+                .insert({
+
+                    order_id: orderId,
+
+                    customer_name:
+                        customerName,
+
+                    customer_phone:
+                        customerPhone,
+
+                    customer_email:
+                        customerEmail || null,
+
+                    address:
+                        customerAddress,
+
+                    city:
+                        customerCity,
+
+                    state:
+                        customerState,
+
+                    pincode:
+                        customerPincode,
+
+                    items:
+                        orderItems,
+
+                    total_amount:
+                        total,
+
+                    payment_status:
+                        "pending",
+
+                    order_status:
+                        "awaiting_confirmation"
+
+                });
+
+
+        /* =============================
+           HANDLE DATABASE ERROR
+        ============================= */
+
+        if (error) {
+
+            console.error(
+                "Order creation error:",
+                error
+            );
+
+            throw error;
+
+        }
+
+
+        /* =============================
+           SHOW CONFIRMATION
+        ============================= */
+
+        const confirmationOrderId =
+            document.getElementById(
+                "confirmationOrderId"
+            );
+
+        if (confirmationOrderId) {
+
+            confirmationOrderId.textContent =
+                orderId;
+
+        }
+
+
+        /* =============================
+           CLOSE CHECKOUT
+        ============================= */
+
+        closeCheckout();
+
+
+        /* =============================
+           SHOW CONFIRMATION
+        ============================= */
+
+        const confirmationOverlay =
+            document.getElementById(
+                "confirmationOverlay"
+            );
+
+        if (confirmationOverlay) {
+
+            confirmationOverlay.classList.add(
+                "show"
+            );
+
+        }
+
+
+        /* =============================
+           CLEAR CART
+        ============================= */
+
+        cart = [];
+
+        updateCart();
+
+
+        /* =============================
+           RESET CHECKOUT FORM
+        ============================= */
+
+        const checkoutForm =
+            document.getElementById(
+                "checkoutForm"
+            );
+
+        if (checkoutForm) {
+
+            checkoutForm.reset();
+
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "Place order error:",
+            error
+        );
+
+        alert(
+            "We could not place your order right now. Please try again."
+        );
+
+    }
+    finally {
+
+        if (button) {
+
+            button.disabled = false;
+
+            button.textContent =
+                "PLACE ORDER";
+
+        }
+
+    }
+
+}
+
+
+/* =================================
+   CLOSE CONFIRMATION
+================================= */
+
+function closeConfirmation() {
+
+    const confirmationOverlay =
+        document.getElementById(
+            "confirmationOverlay"
+        );
+
+    if (confirmationOverlay) {
+
+        confirmationOverlay.classList.remove(
+            "show"
+        );
+
+    }
+
+}
+
+
+/* =================================
+   ESCAPE HTML
 ================================= */
 
 function escapeHtml(value) {
 
+    if (value === null || value === undefined) {
+
+        return "";
+
+    }
+
     return String(value)
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 
 }
 
 
+/* =================================
+   CLOSE CART WHEN OVERLAY CLICKED
+================================= */
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        const overlay =
+            document.getElementById(
+                "jewelBoxOverlay"
+            );
+
+        if (
+            overlay &&
+            event.target === overlay
+        ) {
+
+            closeJewelBox();
+
+        }
+
+    }
+);
+
 
 /* =================================
-   START
+   CLOSE CHECKOUT WHEN CLICKING OUTSIDE
+================================= */
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        const overlay =
+            document.getElementById(
+                "checkoutOverlay"
+            );
+
+        const box =
+            document.querySelector(
+                ".checkout-box"
+            );
+
+        if (
+            overlay &&
+            event.target === overlay &&
+            box
+        ) {
+
+            closeCheckout();
+
+        }
+
+    }
+);
+
+
+/* =================================
+   CLOSE CONFIRMATION WHEN CLICKING OUTSIDE
+================================= */
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        const overlay =
+            document.getElementById(
+                "confirmationOverlay"
+            );
+
+        const box =
+            document.querySelector(
+                ".confirmation-box"
+            );
+
+        if (
+            overlay &&
+            event.target === overlay &&
+            box
+        ) {
+
+            closeConfirmation();
+
+        }
+
+    }
+);
+
+
+/* =================================
+   ESC KEY
+================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key !== "Escape") {
+            return;
+        }
+
+        closeJewelBox();
+
+        closeCheckout();
+
+        closeConfirmation();
+
+    }
+);
+
+
+/* =================================
+   START WEBSITE
 ================================= */
 
 loadProducts();
