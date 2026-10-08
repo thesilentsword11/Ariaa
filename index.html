@@ -17,6 +17,198 @@
         href="style.css"
     >
 
+    <style>
+
+/* =========================================
+   ARIAA CHECKOUT
+   ========================================= */
+
+.checkout-overlay,
+.confirmation-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 9999;
+    overflow-y: auto;
+}
+
+.checkout-overlay.show,
+.confirmation-overlay.show {
+    display: flex;
+}
+
+.checkout-box,
+.confirmation-box {
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    padding: 35px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.checkout-close {
+    position: absolute;
+    right: 18px;
+    top: 12px;
+    border: none;
+    background: none;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.checkout-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.checkout-header small {
+    letter-spacing: 2px;
+}
+
+.checkout-header h2 {
+    margin: 8px 0;
+}
+
+.checkout-field {
+    margin-bottom: 16px;
+}
+
+.checkout-field label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 600;
+}
+
+.checkout-field input,
+.checkout-field textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.checkout-field textarea {
+    resize: vertical;
+}
+
+.checkout-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.checkout-summary {
+    margin: 25px 0;
+    padding: 18px;
+    background: #faf8f4;
+}
+
+.checkout-summary h3 {
+    margin-top: 0;
+}
+
+.checkout-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+}
+
+.checkout-total {
+    border-top: 1px solid #ddd;
+    margin-top: 10px;
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+}
+
+.confirmation-box {
+    text-align: center;
+}
+
+.confirmation-icon {
+    width: 65px;
+    height: 65px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    background: #f4ead7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+}
+
+.order-id-box {
+    margin: 25px 0;
+    padding: 20px;
+    background: #faf8f4;
+}
+
+.order-id-box span,
+.confirmation-status span {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+.order-id-box strong {
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+.confirmation-status {
+    margin-bottom: 20px;
+}
+
+.confirmation-note {
+    text-align: left;
+    padding: 15px;
+    background: #fff8e8;
+    margin-bottom: 20px;
+}
+
+.confirmation-note p {
+    margin-bottom: 0;
+}
+
+.confirmation-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.secondary-button {
+    padding: 13px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+
+    .checkout-box,
+    .confirmation-box {
+        padding: 25px 18px;
+    }
+
+    .checkout-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+}
+
+</style>
+
 </head>
 
 
@@ -450,6 +642,147 @@
 
 </aside>
 
+
+<!-- =========================================
+     ARIAA CHECKOUT
+     ========================================= -->
+
+<div class="checkout-overlay" id="checkoutOverlay">
+
+    <div class="checkout-box">
+
+        <button
+            class="checkout-close"
+            onclick="closeCheckout()"
+        >
+            ×
+        </button>
+
+        <div class="checkout-header">
+
+            <small>ARIAA JEWELS</small>
+
+            <h2>Complete Your Order</h2>
+
+            <p>
+                Please enter your delivery details below.
+            </p>
+
+        </div>
+
+        <form
+            id="checkoutForm"
+            onsubmit="placeOrder(event)"
+        >
+
+            <div class="checkout-field">
+                <label for="customerName">Full Name</label>
+                <input type="text" id="customerName" placeholder="Your full name" required>
+            </div>
+
+            <div class="checkout-field">
+                <label for="customerPhone">Mobile Number</label>
+                <input type="tel" id="customerPhone" placeholder="9876543210" pattern="[0-9]{10}" maxlength="10" required>
+            </div>
+
+            <div class="checkout-field">
+                <label for="customerEmail">Email Address</label>
+                <input type="email" id="customerEmail" placeholder="your@email.com">
+            </div>
+
+            <div class="checkout-field">
+                <label for="customerAddress">Full Delivery Address</label>
+                <textarea id="customerAddress" placeholder="House/Flat number, street, area" rows="3" required></textarea>
+            </div>
+
+            <div class="checkout-row">
+                <div class="checkout-field">
+                    <label for="customerCity">City</label>
+                    <input type="text" id="customerCity" placeholder="City" required>
+                </div>
+                <div class="checkout-field">
+                    <label for="customerState">State</label>
+                    <input type="text" id="customerState" placeholder="State" required>
+                </div>
+            </div>
+
+            <div class="checkout-field">
+                <label for="customerPincode">PIN Code</label>
+                <input type="text" id="customerPincode" placeholder="411001" pattern="[0-9]{6}" maxlength="6" required>
+            </div>
+
+            <div class="checkout-summary">
+                <h3>Your Order</h3>
+                <div id="checkoutItems"></div>
+                <div class="checkout-total">
+                    <span>Total</span>
+                    <strong id="checkoutTotal">₹0</strong>
+                </div>
+            </div>
+
+            <button type="submit" class="gold-button full" id="placeOrderButton">
+                PLACE ORDER
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     ORDER CONFIRMATION
+     ========================================= -->
+
+<div class="confirmation-overlay" id="confirmationOverlay">
+
+    <div class="confirmation-box">
+
+        <div class="confirmation-icon">✓</div>
+
+        <small>ARIAA JEWELS</small>
+
+        <h2>Order Placed Successfully!</h2>
+
+        <p>Thank you for shopping with Ariaa Jewels.</p>
+
+        <div class="order-id-box">
+            <span>YOUR ORDER ID</span>
+            <strong id="confirmationOrderId">ARIAA-XXXXXXXX</strong>
+        </div>
+
+        <div class="confirmation-status">
+            <span>Current Status</span>
+            <strong>🟡 Awaiting Confirmation</strong>
+        </div>
+
+        <div class="confirmation-note">
+            <strong>Important</strong>
+            <p>
+                Please note or save your Order ID.
+                You will need your Order ID and mobile
+                number to track your order.
+            </p>
+        </div>
+
+        <p class="tracking-message">
+            You will be able to track your order from
+            our <strong>Track Your Order</strong> page.
+        </p>
+
+        <div class="confirmation-buttons">
+            <a href="track-order.html" class="gold-button">
+                TRACK YOUR ORDER
+            </a>
+            <button onclick="closeConfirmation()" class="secondary-button">
+                CONTINUE SHOPPING
+            </button>
+        </div>
+
+    </div>
+
+</div>
 
 
 <!-- SUPABASE -->
