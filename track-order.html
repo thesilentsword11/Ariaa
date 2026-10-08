@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Track Your Order | Ariaa Jewels
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #faf7f2;
+            color: #241f1b;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+
+        /* =========================================
+           HEADER
+        ========================================= */
+
+        .track-header {
+            text-align: center;
+            padding: 45px 20px 25px;
+        }
+
+        .brand {
+            font-family: Georgia, serif;
+            font-size: 28px;
+            letter-spacing: 5px;
+            color: #241f1b;
+        }
+
+        .brand span {
+            display: block;
+            margin-top: 6px;
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            letter-spacing: 5px;
+            color: #b8863b;
+        }
+
+
+        /* =========================================
+           MAIN
+        ========================================= */
+
+        .track-container {
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .track-card {
+            background: #ffffff;
+            border: 1px solid #d8c4a4;
+            padding: 45px;
+            box-shadow:
+                0 15px 45px rgba(36, 31, 27, 0.08);
+        }
+
+        .eyebrow {
+            text-align: center;
+            color: #b8863b;
+            font-size: 11px;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            margin: 0;
+            text-align: center;
+            font-family: Georgia, serif;
+            font-size: 34px;
+            font-weight: normal;
+        }
+
+        .intro {
+            max-width: 470px;
+            margin: 16px auto 35px;
+            text-align: center;
+            line-height: 1.7;
+            color: #6d6259;
+            font-size: 14px;
+        }
+
+
+        /* =========================================
+           FORM
+        ========================================= */
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #51463e;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #cdbb9d;
+            background: #fffdf9;
+            color: #241f1b;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: #b8863b;
+        }
+
+
+        /* =========================================
+           BUTTON
+        ========================================= */
+
+        .track-button {
+            width: 100%;
+            border: none;
+            background: #241f1b;
+            color: #ffffff;
+            padding: 16px;
+            cursor: pointer;
+            font-size: 12px;
+            letter-spacing: 2px;
+            transition: 0.2s;
+        }
+
+        .track-button:hover {
+            background: #b8863b;
+        }
+
+        .track-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+
+        /* =========================================
+           ERROR
+        ========================================= */
+
+        .error-message {
+            display: none;
+            margin-top: 20px;
+            padding: 14px;
+            border: 1px solid #d7a7a7;
+            background: #fff5f5;
+            color: #9b3d3d;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+
+        /* =========================================
+           ORDER RESULT
+        ========================================= */
+
+        .order-result {
+            display: none;
+            margin-top: 35px;
+            border-top: 1px solid #d8c4a4;
+            padding-top: 35px;
+        }
+
+        .order-result.show {
+            display: block;
+        }
+
+        .result-title {
+            text-align: center;
+            font-family: Georgia, serif;
+            font-size: 25px;
+            font-weight: normal;
+            margin: 0 0 25px;
+        }
+
+
+        /* =========================================
+           ORDER ID
+        ========================================= */
+
+        .order-id-display {
+            text-align: center;
+            padding: 20px;
+            background: #faf7f2;
+            border: 1px solid #d8c4a4;
+            margin-bottom: 25px;
+        }
+
+        .order-id-display span {
+            display: block;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #8b7c6b;
+            margin-bottom: 8px;
+        }
+
+        .order-id-display strong {
+            font-family: Georgia, serif;
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+
+        /* =========================================
+           STATUS
+        ========================================= */
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .status-box {
+            padding: 18px;
+            background: #faf7f2;
+            border: 1px solid #e0d2bd;
+        }
+
+        .status-box span {
+            display: block;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: #8b7c6b;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .status-box strong {
+            font-size: 14px;
+            color: #241f1b;
+        }
+
+
+        /* =========================================
+           CUSTOMER
+        ========================================= */
+
+        .customer-box {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-family: Georgia, serif;
+            font-size: 20px;
+            font-weight: normal;
+            margin-bottom: 15px;
+        }
+
+        .customer-name {
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .order-date {
+            color: #82766b;
+            font-size: 12px;
+        }
+
+
+        /* =========================================
+           ITEMS
+        ========================================= */
+
+        .items-box {
+            border-top: 1px solid #e0d2bd;
+            padding-top: 25px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee5d8;
+        }
+
+        .item-name {
+            font-size: 14px;
+        }
+
+        .item-quantity {
+            margin-top: 4px;
+            color: #82766b;
+            font-size: 12px;
+        }
+
+        .item-price {
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+
+        /* =========================================
+           TOTAL
+        ========================================= */
+
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #d8c4a4;
+        }
+
+        .order-total span {
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .order-total strong {
+            font-family: Georgia, serif;
+            font-size: 22px;
+            color: #b8863b;
+        }
+
+
+        /* =========================================
+           BACK BUTTON
+        ========================================= */
+
+        .back-button {
+            display: block;
+            margin-top: 30px;
+            text-align: center;
+            text-decoration: none;
+            color: #241f1b;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .back-button:hover {
+            color: #b8863b;
+        }
+
+
+        /* =========================================
+           FOOTER
+        ========================================= */
+
+        footer {
+            text-align: center;
+            padding: 35px 20px;
+            color: #8b7c6b;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================= */
+
+        @media (max-width: 600px) {
+
+            .track-header {
+                padding-top: 30px;
+            }
+
+            .track-card {
+                padding: 28px 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .order-item {
+                flex-direction: column;
+            }
+
+            .item-price {
+                text-align: left;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         HEADER
+    ========================================= -->
+
+    <header class="track-header">
+
+        <div class="brand">
+
+            ARIAA
+
+            <span>
+                JEWELS
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================================
+         MAIN
+    ========================================= -->
+
+    <main class="track-container">
+
+        <section class="track-card">
+
+
+            <div class="eyebrow">
+                ARIAA JEWELS
+            </div>
+
+
+            <h1>
+                Track Your Order
+            </h1>
+
+
+            <p class="intro">
+
+                Enter your Order ID and the mobile number
+                used when placing your order to view
+                your latest order status.
+
+            </p>
+
+
+            <!-- =====================================
+                 TRACK FORM
+            ===================================== -->
+
+            <form
+                id="trackOrderForm"
+                onsubmit="trackOrder(event)"
+            >
+
+
+                <div class="field">
+
+                    <label for="orderId">
+                        Order ID
+                    </label>
+
+                    <input
+                        type="text"
+                        id="orderId"
+                        placeholder="ARIAA-20261002-1234"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label for="customerPhone">
+                        Mobile Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="customerPhone"
+                        placeholder="9876543210"
+                        pattern="[0-9]{10}"
+                        maxlength="10"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="track-button"
+                    id="trackButton"
+                >
+                    TRACK MY ORDER
+                </button>
+
+
+            </form>
+
+
+            <!-- =====================================
+                 ERROR
+            ===================================== -->
+
+            <div
+                class="error-message"
+                id="errorMessage"
+            ></div>
+
+
+            <!-- =====================================
+                 ORDER RESULT
+            ===================================== -->
+
+            <div
+                class="order-result"
+                id="orderResult"
+            >
+
+
+                <h2 class="result-title">
+                    Your Order
+                </h2>
+
+
+                <div class="order-id-display">
+
+                    <span>
+                        ORDER ID
+                    </span>
+
+                    <strong id="resultOrderId">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="status-grid">
+
+
+                    <div class="status-box">
+
+                        <span>
+                            Order Status
+                        </span>
+
+                        <strong id="resultOrderStatus">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="status-box">
+
+                        <span>
+                            Payment Status
+                        </span>
+
+                        <strong id="resultPaymentStatus">
+                            —
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="customer-box">
+
+                    <div class="section-title">
+                        Order Details
+                    </div>
+
+                    <div
+                        class="customer-name"
+                        id="resultCustomerName"
+                    >
+                        —
+                    </div>
+
+                    <div
+                        class="order-date"
+                        id="resultOrderDate"
+                    >
+                        —
+                    </div>
+
+                </div>
+
+
+                <div class="items-box">
+
+                    <div class="section-title">
+                        Your Items
+                    </div>
+
+                    <div id="resultItems"></div>
+
+
+                    <div class="order-total">
+
+                        <span>
+                            Total
+                        </span>
+
+                        <strong id="resultTotal">
+                            ₹0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <a
+                href="index.html"
+                class="back-button"
+            >
+                ← Continue Shopping
+            </a>
+
+
+        </section>
+
+    </main>
+
+
+    <footer>
+
+        Every piece tells a story.
+
+        <br><br>
+
+        © Ariaa Jewels
+
+    </footer>
+
+
+
+    <!-- =========================================
+         SUPABASE
+    ========================================= -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="supabase-config.js"></script>
+
+
+    <!-- =========================================
+         TRACKING JAVASCRIPT
+    ========================================= -->
+
+    <script>
+
+        const trackClient =
+            window.supabaseClient;
+
+
+        /* =========================================
+           HELPERS
+        ========================================= */
+
+        function escapeHtml(value) {
+
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+        }
+
+
+        function formatMoney(amount) {
+
+            return "₹" +
+                Number(amount || 0)
+                    .toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+        }
+
+
+        function formatStatus(status) {
+
+            if (!status) {
+                return "—";
+            }
+
+            return status
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, function(letter) {
+                    return letter.toUpperCase();
+                });
+
+        }
+
+
+        function formatDate(dateString) {
+
+            if (!dateString) {
+                return "—";
+            }
+
+            const date =
+                new Date(dateString);
+
+            return date.toLocaleString(
+                "en-IN",
+                {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+        }
+
+
+        function showError(message) {
+
+            const errorElement =
+                document.getElementById(
+                    "errorMessage"
+                );
+
+            errorElement.textContent =
+                message;
+
+            errorElement.classList.add(
+                "show"
+            );
+
+        }
+
+
+        function hideError() {
+
+            const errorElement =
+                document.getElementById(
+                    "errorMessage"
+                );
+
+            errorElement.textContent = "";
+
+            errorElement.classList.remove(
+                "show"
+            );
+
+        }
+
+
+        /* =========================================
+           TRACK ORDER
+        ========================================= */
+
+        async function trackOrder(event) {
+
+            event.preventDefault();
+
+
+            hideError();
+
+
+            const orderId =
+                document
+                    .getElementById("orderId")
+                    .value
+                    .trim();
+
+
+            const phone =
+                document
+                    .getElementById("customerPhone")
+                    .value
+                    .trim();
+
+
+            const button =
+                document.getElementById(
+                    "trackButton"
+                );
+
+
+            const result =
+                document.getElementById(
+                    "orderResult"
+                );
+
+
+            result.classList.remove(
+                "show"
+            );
+
+
+            if (!orderId) {
+
+                showError(
+                    "Please enter your Order ID."
+                );
+
+                return;
+
+            }
+
+
+            if (!/^[0-9]{10}$/.test(phone)) {
+
+                showError(
+                    "Please enter a valid 10-digit mobile number."
+                );
+
+                return;
+
+            }
+
+
+            button.disabled = true;
+
+            button.textContent =
+                "SEARCHING...";
+
+
+            try {
+
+                const {
+                    data,
+                    error
+                } = await trackClient.rpc(
+                    "track_order",
+                    {
+                        p_order_id: orderId,
+                        p_customer_phone: phone
+                    }
+                );
+
+
+                if (error) {
+
+                    console.error(
+                        "Tracking error:",
+                        error
+                    );
+
+                    showError(
+                        "Unable to track this order right now. Please try again."
+                    );
+
+                    return;
+
+                }
+
+
+                if (!data || !data.length) {
+
+                    showError(
+                        "No order was found with this Order ID and mobile number."
+                    );
+
+                    return;
+
+                }
+
+
+                displayOrder(
+                    data[0]
+                );
+
+            }
+            catch (error) {
+
+                console.error(
+                    error
+                );
+
+                showError(
+                    "Something went wrong. Please try again."
+                );
+
+            }
+            finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "TRACK MY ORDER";
+
+            }
+
+        }
+
+
+        /* =========================================
+           DISPLAY ORDER
+        ========================================= */
+
+        function displayOrder(order) {
+
+            document
+                .getElementById(
+                    "resultOrderId"
+                )
+                .textContent =
+                order.order_id || "—";
+
+
+            document
+                .getElementById(
+                    "resultOrderStatus"
+                )
+                .textContent =
+                formatStatus(
+                    order.order_status
+                );
+
+
+            document
+                .getElementById(
+                    "resultPaymentStatus"
+                )
+                .textContent =
+                formatStatus(
+                    order.payment_status
+                );
+
+
+            document
+                .getElementById(
+                    "resultCustomerName"
+                )
+                .textContent =
+                order.customer_name || "—";
+
+
+            document
+                .getElementById(
+                    "resultOrderDate"
+                )
+                .textContent =
+                "Placed on " +
+                formatDate(
+                    order.created_at
+                );
+
+
+            document
+                .getElementById(
+                    "resultTotal"
+                )
+                .textContent =
+                formatMoney(
+                    order.total_amount
+                );
+
+
+            displayItems(
+                order.items
+            );
+
+
+            document
+                .getElementById(
+                    "orderResult"
+                )
+                .classList.add(
+                    "show"
+                );
+
+        }
+
+
+        /* =========================================
+           DISPLAY ITEMS
+        ========================================= */
+
+        function displayItems(items) {
+
+            const container =
+                document.getElementById(
+                    "resultItems"
+                );
+
+
+            container.innerHTML = "";
+
+
+            if (!Array.isArray(items) ||
+                !items.length) {
+
+                container.innerHTML =
+                    "<p>No item details available.</p>";
+
+                return;
+
+            }
+
+
+            items.forEach(function(item) {
+
+                const itemElement =
+                    document.createElement(
+                        "div"
+                    );
+
+                itemElement.className =
+                    "order-item";
+
+
+                const name =
+                    item.name ||
+                    "Jewelry Item";
+
+
+                const quantity =
+                    Number(
+                        item.quantity || 1
+                    );
+
+
+                const price =
+                    Number(
+                        item.price || 0
+                    );
+
+
+                itemElement.innerHTML = `
+
+                    <div>
+
+                        <div class="item-name">
+
+                            ${escapeHtml(name)}
+
+                        </div>
+
+                        <div class="item-quantity">
+
+                            Quantity: ${quantity}
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="item-price">
+
+                        ${formatMoney(price * quantity)}
+
+                    </div>
+
+                `;
+
+
+                container.appendChild(
+                    itemElement
+                );
+
+            });
+
+        }
+
+
+        /* =========================================
+           AUTO UPPERCASE ORDER ID
+        ========================================= */
+
+        document
+            .getElementById("orderId")
+            .addEventListener(
+                "input",
+                function() {
+
+                    this.value =
+                        this.value
+                            .toUpperCase();
+
+                }
+            );
+
+    </script>
+
+
+</body>
+
+</html>
