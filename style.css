@@ -822,3 +822,36 @@ footer a:hover{
     }
 
 }
+
+.track-order-link {
+    color: #241f1b;
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    transition: 0.2s;
+}
+
+.track-order-link:hover {
+    color: #b8863b;
+}
+
+
+.track-order-jewel-button {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid #b8863b;
+    color: #b8863b;
+    background: transparent;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    transition: 0.2s;
+}
+
+.track-order-jewel-button:hover {
+    background: #b8863b;
+    color: #ffffff;
+}
