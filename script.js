@@ -49,13 +49,9 @@ async function loadProducts() {
 
             container.innerHTML = `
                 <div class="loading-products">
-
                     Unable to load our collection.
-
                     <br><br>
-
                     Please try again later.
-
                 </div>
             `;
 
@@ -78,13 +74,9 @@ async function loadProducts() {
 
         container.innerHTML = `
             <div class="loading-products">
-
                 Unable to load our collection.
-
                 <br><br>
-
                 Please try again later.
-
             </div>
         `;
 
@@ -134,9 +126,7 @@ function displayProducts(
 
         container.innerHTML = `
             <div class="loading-products">
-
                 No products found.
-
             </div>
         `;
 
@@ -169,7 +159,6 @@ function displayProducts(
 
                 </div>
 
-
                 <div class="product-info">
 
                     <small>
@@ -185,7 +174,6 @@ function displayProducts(
                             product.price
                         ).toLocaleString("en-IN")}
                     </p>
-
 
                     <button
                         onclick="addToCart(${product.id})"
@@ -416,7 +404,6 @@ function updateCart() {
                     alt="${escapeHtml(item.name)}"
                 >
 
-
                 <div>
 
                     <h3>
@@ -428,7 +415,6 @@ function updateCart() {
                             item.price
                         ).toLocaleString("en-IN")}
                     </p>
-
 
                     <div class="quantity">
 
@@ -449,7 +435,6 @@ function updateCart() {
                         </button>
 
                     </div>
-
 
                     <button
                         class="remove"
@@ -526,7 +511,7 @@ function changeQuantity(
 
 
 /* =================================
-   REMOVE
+   REMOVE FROM CART
 ================================= */
 
 function removeFromCart(id) {
@@ -702,8 +687,6 @@ function checkout() {
         total.toLocaleString(
             "en-IN"
         );
-
-    /* Close Jewel Box first */
 
     closeJewelBox();
 
@@ -929,7 +912,7 @@ async function placeOrder(
 
 
         /* =============================
-           PREPARE ITEMS
+           PREPARE ORDER ITEMS
         ============================= */
 
         const orderItems =
@@ -1140,6 +1123,157 @@ async function placeOrder(
         }
 
     }
+
+}
+
+
+/* =================================
+   COPY ORDER ID
+================================= */
+
+function copyOrderId() {
+
+    const orderIdElement =
+        document.getElementById(
+            "confirmationOrderId"
+        );
+
+    if (!orderIdElement) {
+        return;
+    }
+
+    const orderId =
+        orderIdElement.textContent.trim();
+
+    if (!orderId) {
+        return;
+    }
+
+
+    /* Modern clipboard */
+
+    if (
+        navigator.clipboard &&
+        window.isSecureContext
+    ) {
+
+        navigator.clipboard
+            .writeText(orderId)
+            .then(() => {
+
+                showCopySuccess();
+
+            })
+            .catch(() => {
+
+                fallbackCopyOrderId(
+                    orderId
+                );
+
+            });
+
+        return;
+
+    }
+
+
+    /* Fallback */
+
+    fallbackCopyOrderId(
+        orderId
+    );
+
+}
+
+
+/* =================================
+   FALLBACK COPY
+================================= */
+
+function fallbackCopyOrderId(
+    orderId
+) {
+
+    const textArea =
+        document.createElement(
+            "textarea"
+        );
+
+    textArea.value =
+        orderId;
+
+    textArea.style.position =
+        "fixed";
+
+    textArea.style.left =
+        "-999999px";
+
+    textArea.style.top =
+        "-999999px";
+
+    document.body.appendChild(
+        textArea
+    );
+
+    textArea.focus();
+
+    textArea.select();
+
+    try {
+
+        document.execCommand(
+            "copy"
+        );
+
+        showCopySuccess();
+
+    }
+    catch (error) {
+
+        alert(
+            "Your Order ID is: " +
+            orderId
+        );
+
+    }
+
+    document.body.removeChild(
+        textArea
+    );
+
+}
+
+
+/* =================================
+   COPY SUCCESS MESSAGE
+================================= */
+
+function showCopySuccess() {
+
+    const button =
+        document.querySelector(
+            ".copy-order-button"
+        );
+
+    if (!button) {
+        return;
+    }
+
+    const originalText =
+        button.textContent;
+
+    button.textContent =
+        "COPIED ✓";
+
+    setTimeout(
+        () => {
+
+            button.textContent =
+                originalText;
+
+        },
+        1800
+    );
 
 }
 
