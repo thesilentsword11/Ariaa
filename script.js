@@ -1138,49 +1138,79 @@ function copyOrderId() {
             "confirmationOrderId"
         );
 
+    const copyButton =
+        document.querySelector(
+            ".copy-order-button"
+        );
+
     if (!orderIdElement) {
+
+        alert(
+            "Order ID not found."
+        );
+
         return;
+
     }
 
     const orderId =
         orderIdElement.textContent.trim();
 
     if (!orderId) {
+
+        alert(
+            "Order ID is empty."
+        );
+
         return;
+
     }
 
 
-    /* Modern clipboard */
+    /* =================================
+       METHOD 1 — MODERN CLIPBOARD
+    ================================= */
 
     if (
         navigator.clipboard &&
-        window.isSecureContext
+        typeof navigator.clipboard.writeText ===
+        "function"
     ) {
 
         navigator.clipboard
             .writeText(orderId)
-            .then(() => {
+            .then(
+                function() {
 
-                showCopySuccess();
+                    copyButtonSuccess(
+                        copyButton
+                    );
 
-            })
-            .catch(() => {
+                }
+            )
+            .catch(
+                function() {
 
-                fallbackCopyOrderId(
-                    orderId
-                );
+                    copyOrderIdFallback(
+                        orderId,
+                        copyButton
+                    );
 
-            });
+                }
+            );
 
         return;
 
     }
 
 
-    /* Fallback */
+    /* =================================
+       METHOD 2 — FALLBACK
+    ================================= */
 
-    fallbackCopyOrderId(
-        orderId
+    copyOrderIdFallback(
+        orderId,
+        copyButton
     );
 
 }
@@ -1190,8 +1220,9 @@ function copyOrderId() {
    FALLBACK COPY
 ================================= */
 
-function fallbackCopyOrderId(
-    orderId
+function copyOrderIdFallback(
+    orderId,
+    copyButton
 ) {
 
     const textArea =
@@ -1202,14 +1233,28 @@ function fallbackCopyOrderId(
     textArea.value =
         orderId;
 
+    textArea.setAttribute(
+        "readonly",
+        ""
+    );
+
     textArea.style.position =
         "fixed";
 
-    textArea.style.left =
-        "-999999px";
-
     textArea.style.top =
-        "-999999px";
+        "0";
+
+    textArea.style.left =
+        "-9999px";
+
+    textArea.style.width =
+        "1px";
+
+    textArea.style.height =
+        "1px";
+
+    textArea.style.opacity =
+        "0";
 
     document.body.appendChild(
         textArea
@@ -1219,21 +1264,29 @@ function fallbackCopyOrderId(
 
     textArea.select();
 
+    textArea.setSelectionRange(
+        0,
+        textArea.value.length
+    );
+
+    let copied = false;
+
     try {
 
-        document.execCommand(
-            "copy"
-        );
-
-        showCopySuccess();
+        copied =
+            document.execCommand(
+                "copy"
+            );
 
     }
     catch (error) {
 
-        alert(
-            "Your Order ID is: " +
-            orderId
+        console.error(
+            "Fallback copy failed:",
+            error
         );
+
+        copied = false;
 
     }
 
@@ -1241,22 +1294,38 @@ function fallbackCopyOrderId(
         textArea
     );
 
+
+    if (copied) {
+
+        copyButtonSuccess(
+            copyButton
+        );
+
+    }
+    else {
+
+        alert(
+            "Please copy your Order ID manually:\n\n" +
+            orderId
+        );
+
+    }
+
 }
 
 
 /* =================================
-   COPY SUCCESS MESSAGE
+   COPY BUTTON SUCCESS
 ================================= */
 
-function showCopySuccess() {
-
-    const button =
-        document.querySelector(
-            ".copy-order-button"
-        );
+function copyButtonSuccess(
+    button
+) {
 
     if (!button) {
+
         return;
+
     }
 
     const originalText =
@@ -1265,11 +1334,17 @@ function showCopySuccess() {
     button.textContent =
         "COPIED ✓";
 
+    button.disabled =
+        true;
+
     setTimeout(
-        () => {
+        function() {
 
             button.textContent =
                 originalText;
+
+            button.disabled =
+                false;
 
         },
         1800
