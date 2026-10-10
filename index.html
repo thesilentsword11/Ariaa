@@ -1,198 +1,1267 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ariaa Jewels</title>
-<link rel="stylesheet" href="style.css">
-<style>
-.checkout-overlay,.confirmation-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999;overflow-y:auto}
-.checkout-overlay.show,.confirmation-overlay.show{display:flex}
-.checkout-box{width:100%;max-width:600px;max-height:90vh;overflow-y:auto;background:#fff;padding:35px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.25)}
-.checkout-close{position:absolute;right:18px;top:12px;border:none;background:none;font-size:30px;cursor:pointer;color:#29231d}
-.checkout-header{text-align:center;margin-bottom:25px}
-.checkout-header small{letter-spacing:2px;color:#b8863b}
-.checkout-header h2{margin:8px 0;font-family:Georgia,serif;font-weight:normal}
-.checkout-header p{color:#777}
-.checkout-field{margin-bottom:16px}
-.checkout-field label{display:block;margin-bottom:7px;font-weight:600}
-.checkout-field input,.checkout-field textarea{width:100%;padding:12px;border:1px solid #ddd;font-family:inherit;box-sizing:border-box;background:white}
-.checkout-field input:focus,.checkout-field textarea:focus{outline:none;border-color:#b8863b}
-.checkout-field textarea{resize:vertical}
-.checkout-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-.checkout-summary{margin:25px 0;padding:18px;background:#faf8f4;border:1px solid #eee4d7}
-.checkout-summary h3{margin-top:0;font-family:Georgia,serif;font-weight:normal}
-.checkout-item{display:flex;justify-content:space-between;padding:7px 0}
-.checkout-total{border-top:1px solid #ddd;margin-top:10px;padding-top:12px;display:flex;justify-content:space-between;font-size:18px}
-.confirmation-overlay{background:#faf7f2;padding:20px}
-.confirmation-overlay.show{display:flex}
-.confirmation-overlay .confirmation-box{width:100%;max-width:760px;max-height:92vh;overflow-y:auto;background:white;border:1px solid #e2d8ca;text-align:center;padding:55px 45px;position:relative;box-shadow:0 20px 45px rgba(36,31,27,.08)}
-.order-confirmation-symbol{color:#b8863b;font-size:55px;line-height:1;margin-bottom:14px}
-.order-confirmation-eyebrow{color:#b8863b;font-size:10px;letter-spacing:4px;text-transform:uppercase;margin-bottom:14px}
-.confirmation-overlay .confirmation-box h1{font-family:Georgia,serif;font-size:46px;font-weight:normal;color:#29231d;margin:0 0 15px}
-.order-confirmation-message{max-width:560px;margin:0 auto 35px;color:#777;font-size:14px;line-height:1.8}
-.order-status{display:inline-block;border:1px solid #d9c19a;background:#faf7f2;color:#95652d;padding:10px 22px;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:35px}
-.confirmation-overlay .order-id-box{background:#241f1b;color:white;padding:25px;margin:0 auto 35px;max-width:520px}
-.order-id-label{display:block;color:#d6ac65;font-size:9px;letter-spacing:3px;margin-bottom:10px;text-transform:uppercase}
-.confirmation-overlay .order-id-value{display:block;font-family:Georgia,serif;color:white;font-size:25px;letter-spacing:2px;margin-bottom:18px;word-break:break-word}
-.copy-order-button{background:transparent;border:1px solid #b8863b;color:#d6ac65;padding:9px 18px;cursor:pointer;font-size:9px;letter-spacing:1.5px;transition:.2s ease}
-.copy-order-button:hover{background:#b8863b;color:white}
-.order-jewel-message{border-top:1px solid #e4d9c8;border-bottom:1px solid #e4d9c8;padding:25px 15px;margin-bottom:35px}
-.order-jewel-message p{color:#6d655d;font-family:Georgia,serif;font-size:18px;line-height:1.7;font-style:italic;margin:0}
-.order-confirmation-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-.order-confirmation-actions .gold-button{min-width:190px}
-.order-home-button{display:inline-block;min-width:190px;padding:15px 28px;border:1px solid #d9cbb9;background:transparent;color:#665a4e;text-decoration:none;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.2s ease}
-.order-home-button:hover{border-color:#b8863b;color:#b8863b}
-@media(max-width:600px){.checkout-box{padding:25px 18px}.checkout-row{grid-template-columns:1fr;gap:0}.confirmation-overlay{padding:15px}.confirmation-overlay .confirmation-box{padding:40px 20px;max-height:94vh}.confirmation-overlay .confirmation-box h1{font-size:36px}.order-confirmation-symbol{font-size:48px}.confirmation-overlay .order-id-value{font-size:20px}.order-confirmation-actions{flex-direction:column}.order-confirmation-actions .gold-button,.order-home-button{width:100%;box-sizing:border-box}}
-.track-order-link{color:#241f1b;text-decoration:none;font-size:11px;letter-spacing:1.5px;transition:.2s ease}
-.track-order-link:hover{color:#b8863b}
-.track-order-jewel-button{display:block;width:100%;margin-top:12px;padding:14px;text-align:center;text-decoration:none;border:1px solid #b8863b;color:#b8863b;background:transparent;font-size:11px;letter-spacing:1.5px;transition:.2s ease;box-sizing:border-box}
-.track-order-jewel-button:hover{background:#b8863b;color:#fff}
-@media(max-width:700px){.track-order-link{display:none}}
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ariaa Jewels</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <style>
+
+/* =========================================
+   ARIAA CHECKOUT
+========================================= */
+
+.checkout-overlay,
+.confirmation-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 9999;
+    overflow-y: auto;
+}
+
+.checkout-overlay.show,
+.confirmation-overlay.show {
+    display: flex;
+}
+
+
+/* =========================================
+   CHECKOUT BOX
+========================================= */
+
+.checkout-box {
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    padding: 35px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.checkout-close {
+    position: absolute;
+    right: 18px;
+    top: 12px;
+    border: none;
+    background: none;
+    font-size: 30px;
+    cursor: pointer;
+    color: #29231d;
+}
+
+.checkout-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.checkout-header small {
+    letter-spacing: 2px;
+    color: #b8863b;
+}
+
+.checkout-header h2 {
+    margin: 8px 0;
+    font-family: Georgia, serif;
+    font-weight: normal;
+}
+
+.checkout-header p {
+    color: #777;
+}
+
+.checkout-field {
+    margin-bottom: 16px;
+}
+
+.checkout-field label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 600;
+}
+
+.checkout-field input,
+.checkout-field textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    font-family: inherit;
+    box-sizing: border-box;
+    background: white;
+}
+
+.checkout-field input:focus,
+.checkout-field textarea:focus {
+    outline: none;
+    border-color: #b8863b;
+}
+
+.checkout-field textarea {
+    resize: vertical;
+}
+
+.checkout-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.checkout-summary {
+    margin: 25px 0;
+    padding: 18px;
+    background: #faf8f4;
+    border: 1px solid #eee4d7;
+}
+
+.checkout-summary h3 {
+    margin-top: 0;
+    font-family: Georgia, serif;
+    font-weight: normal;
+}
+
+.checkout-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+}
+
+.checkout-total {
+    border-top: 1px solid #ddd;
+    margin-top: 10px;
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+}
+
+
+/* =========================================
+   NEW ARIAA ORDER CONFIRMATION
+========================================= */
+
+/* Keep the same ID used by script.js */
+.confirmation-overlay {
+    background: #faf7f2;
+    padding: 20px;
+}
+
+.confirmation-overlay.show {
+    display: flex;
+}
+
+
+/* Main confirmation card */
+
+.confirmation-overlay .confirmation-box {
+    width: 100%;
+    max-width: 760px;
+    max-height: 92vh;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e2d8ca;
+    text-align: center;
+    padding: 55px 45px;
+    position: relative;
+    box-shadow: 0 20px 45px rgba(36,31,27,.08);
+}
+
+
+/* Jewelry symbol */
+
+.order-confirmation-symbol {
+    color: #b8863b;
+    font-size: 55px;
+    line-height: 1;
+    margin-bottom: 14px;
+}
+
+
+/* Small ARIAA text */
+
+.order-confirmation-eyebrow {
+    color: #b8863b;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+
+/* Main heading */
+
+.confirmation-overlay .confirmation-box h1 {
+    font-family: Georgia, serif;
+    font-size: 46px;
+    font-weight: normal;
+    color: #29231d;
+    margin: 0 0 15px;
+}
+
+
+/* Message */
+
+.order-confirmation-message {
+    max-width: 560px;
+    margin: 0 auto 35px;
+    color: #777;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+
+/* Status */
+
+.order-status {
+    display: inline-block;
+    border: 1px solid #d9c19a;
+    background: #faf7f2;
+    color: #95652d;
+    padding: 10px 22px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 35px;
+}
+
+
+/* Order ID */
+
+.confirmation-overlay .order-id-box {
+    background: #241f1b;
+    color: white;
+    padding: 25px;
+    margin: 0 auto 35px;
+    max-width: 520px;
+}
+
+.order-id-label {
+    display: block;
+    color: #d6ac65;
+    font-size: 9px;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.confirmation-overlay .order-id-value {
+    display: block;
+    font-family: Georgia, serif;
+    color: white;
+    font-size: 25px;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+    word-break: break-word;
+}
+
+
+/* Copy button */
+
+.copy-order-button {
+    background: transparent;
+    border: 1px solid #b8863b;
+    color: #d6ac65;
+    padding: 9px 18px;
+    cursor: pointer;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    transition: 0.2s ease;
+}
+
+.copy-order-button:hover {
+    background: #b8863b;
+    color: white;
+}
+
+
+/* Jewelry message */
+
+.order-jewel-message {
+    border-top: 1px solid #e4d9c8;
+    border-bottom: 1px solid #e4d9c8;
+    padding: 25px 15px;
+    margin-bottom: 35px;
+}
+
+.order-jewel-message p {
+    color: #6d655d;
+    font-family: Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+    font-style: italic;
+    margin: 0;
+}
+
+
+/* Confirmation buttons */
+
+.order-confirmation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.order-confirmation-actions .gold-button {
+    min-width: 190px;
+}
+
+
+/* Continue shopping button */
+
+.order-home-button {
+    display: inline-block;
+    min-width: 190px;
+    padding: 15px 28px;
+    border: 1px solid #d9cbb9;
+    background: transparent;
+    color: #665a4e;
+    text-decoration: none;
+    font-size: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.order-home-button:hover {
+    border-color: #b8863b;
+    color: #b8863b;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+
+    .checkout-box {
+        padding: 25px 18px;
+    }
+
+    .checkout-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .confirmation-overlay {
+        padding: 15px;
+    }
+
+    .confirmation-overlay .confirmation-box {
+        padding: 40px 20px;
+        max-height: 94vh;
+    }
+
+    .confirmation-overlay .confirmation-box h1 {
+        font-size: 36px;
+    }
+
+    .order-confirmation-symbol {
+        font-size: 48px;
+    }
+
+    .confirmation-overlay .order-id-value {
+        font-size: 20px;
+    }
+
+    .order-confirmation-actions {
+        flex-direction: column;
+    }
+
+    .order-confirmation-actions .gold-button,
+    .order-home-button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+}
+
+
+
+/* =========================================
+   TRACK ORDER LINK
+========================================= */
+
+.track-order-link {
+    color: #241f1b;
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    transition: 0.2s ease;
+}
+
+.track-order-link:hover {
+    color: #b8863b;
+}
+
+.track-order-jewel-button {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid #b8863b;
+    color: #b8863b;
+    background: transparent;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    transition: 0.2s ease;
+    box-sizing: border-box;
+}
+
+.track-order-jewel-button:hover {
+    background: #b8863b;
+    color: #ffffff;
+}
+
+@media (max-width: 700px) {
+    .track-order-link {
+        display: none;
+    }
+}
+
 </style>
+
 </head>
+
+
 <body>
+
+
+<!-- =========================================
+     HEADER
+========================================= -->
+
 <header>
-<a href="#home" class="logo">ARIAA <span>JEWELS</span></a>
-<nav>
-<a href="#home">Home</a>
-<a href="#collection">Collection</a>
-<a href="#about">About</a>
-<a href="#contact">Contact</a>
-<a href="track-order.html" class="track-order-link">TRACK MY ORDER</a>
-</nav>
-<button class="jewel-button" onclick="openJewelBox()">◇ <span>MY JEWEL BOX</span> <b id="cartCount">0</b></button>
+
+    <a
+        href="#home"
+        class="logo"
+    >
+        ARIAA
+
+        <span>
+            JEWELS
+        </span>
+    </a>
+
+
+    <nav>
+
+        <a href="#home">
+            Home
+        </a>
+
+        <a href="#collection">
+            Collection
+        </a>
+
+        <a href="#about">
+            About
+        </a>
+
+        <a href="#contact">
+            Contact
+        </a>
+
+        <a href="track-order.html" class="track-order-link">
+            TRACK MY ORDER
+        </a>
+
+    </nav>
+
+
+    <button
+        class="jewel-button"
+        onclick="openJewelBox()"
+    >
+
+        ◇
+
+        <span>
+            MY JEWEL BOX
+        </span>
+
+        <b id="cartCount">
+            0
+        </b>
+
+    </button>
+
 </header>
 
-<section class="hero" id="home">
-<div class="hero-content">
-<p class="eyebrow">TIMELESS • ELEGANT • BEAUTIFUL</p>
-<h1>Jewelry That Tells Your Story</h1>
-<p>Discover beautiful pieces designed for your most special moments.</p>
-<a href="#collection" class="gold-button">SHOP COLLECTION</a>
-</div>
+
+
+<!-- =========================================
+     HERO
+========================================= -->
+
+<section
+    class="hero"
+    id="home"
+>
+
+    <div class="hero-content">
+
+        <p class="eyebrow">
+            TIMELESS • ELEGANT • BEAUTIFUL
+        </p>
+
+        <h1>
+            Jewelry That Tells Your Story
+        </h1>
+
+        <p>
+            Discover beautiful pieces designed
+            for your most special moments.
+        </p>
+
+        <a
+            href="#collection"
+            class="gold-button"
+        >
+            SHOP COLLECTION
+        </a>
+
+    </div>
+
 </section>
+
+
+
+<!-- =========================================
+     FEATURES
+========================================= -->
 
 <section class="features">
-<div><span>◇</span><h3>Elegant Designs</h3><p>Beautiful pieces for every occasion.</p></div>
-<div><span>✦</span><h3>Carefully Selected</h3><p>Quality jewelry chosen with care.</p></div>
-<div><span>♡</span><h3>Made With Love</h3><p>Jewelry for moments that matter.</p></div>
+
+    <div>
+
+        <span>
+            ◇
+        </span>
+
+        <h3>
+            Elegant Designs
+        </h3>
+
+        <p>
+            Beautiful pieces for every occasion.
+        </p>
+
+    </div>
+
+
+    <div>
+
+        <span>
+            ✦
+        </span>
+
+        <h3>
+            Carefully Selected
+        </h3>
+
+        <p>
+            Quality jewelry chosen with care.
+        </p>
+
+    </div>
+
+
+    <div>
+
+        <span>
+            ♡
+        </span>
+
+        <h3>
+            Made With Love
+        </h3>
+
+        <p>
+            Jewelry for moments that matter.
+        </p>
+
+    </div>
+
 </section>
 
-<section class="mood-section" aria-labelledby="moodTitle">
-<div class="mood-intro">
-<span class="mood-kicker">A LITTLE SOMETHING FOR YOU ♡</span>
-<h2 id="moodTitle">What’s your kind of <em>pretty?</em></h2>
-<p>For your soft-girl era, your everyday glow, and every little moment worth celebrating.</p>
-</div>
-<div class="mood-cards">
-<button class="mood-card mood-pink" type="button" onclick="filterProducts('Earrings',document.querySelector('.filter:nth-child(4)'));document.getElementById('collection').scrollIntoView({behavior:'smooth'});">
-<span class="mood-emoji" aria-hidden="true">♡</span><span class="mood-label">Cute &amp; Coquette</span><span class="mood-caption">Little details, big crush</span><span class="mood-link">FIND YOUR SPARKLE ↗</span>
-</button>
-<button class="mood-card mood-cream" type="button" onclick="filterProducts('Necklaces',document.querySelector('.filter:nth-child(2)'));document.getElementById('collection').scrollIntoView({behavior:'smooth'});">
-<span class="mood-emoji" aria-hidden="true">✧</span><span class="mood-label">Everyday Pretty</span><span class="mood-caption">Your daily dose of lovely</span><span class="mood-link">SHOP NECKLACES ↗</span>
-</button>
-<button class="mood-card mood-lilac" type="button" onclick="filterProducts('Rings',document.querySelector('.filter:nth-child(3)'));document.getElementById('collection').scrollIntoView({behavior:'smooth'});">
-<span class="mood-emoji" aria-hidden="true">✿</span><span class="mood-label">Main Character</span><span class="mood-caption">A little extra, always</span><span class="mood-link">SHOP RINGS ↗</span>
-</button>
-</div>
-<p class="mood-note">A reminder from Ariaa: you’re already the pretty thing. The jewelry is just the sparkle. ♡</p>
+
+
+<!-- =========================================
+     COLLECTION
+========================================= -->
+
+<section
+    class="collection"
+    id="collection"
+>
+
+    <div class="section-title">
+
+        <small>
+            OUR COLLECTION
+        </small>
+
+        <h2>
+            Discover Your Sparkle
+        </h2>
+
+        <p>
+            Find something beautiful for every occasion.
+        </p>
+
+    </div>
+
+
+    <div class="filters">
+
+        <button
+            class="filter active"
+            onclick="filterProducts('All', this)"
+        >
+            All
+        </button>
+
+        <button
+            class="filter"
+            onclick="filterProducts('Necklaces', this)"
+        >
+            Necklaces
+        </button>
+
+        <button
+            class="filter"
+            onclick="filterProducts('Rings', this)"
+        >
+            Rings
+        </button>
+
+        <button
+            class="filter"
+            onclick="filterProducts('Earrings', this)"
+        >
+            Earrings
+        </button>
+
+        <button
+            class="filter"
+            onclick="filterProducts('Bracelets', this)"
+        >
+            Bracelets
+        </button>
+
+    </div>
+
+
+    <div
+        class="products"
+        id="products"
+    >
+
+        <div class="loading-products">
+            Loading our collection...
+        </div>
+
+    </div>
+
 </section>
 
-<section class="collection" id="collection">
-<div class="section-title">
-<small>OUR COLLECTION</small>
-<h2>Discover Your Sparkle</h2>
-<p>Find something beautiful for every occasion.</p>
-</div>
-<div class="filters">
-<button class="filter active" onclick="filterProducts('All',this)">All</button>
-<button class="filter" onclick="filterProducts('Necklaces',this)">Necklaces</button>
-<button class="filter" onclick="filterProducts('Rings',this)">Rings</button>
-<button class="filter" onclick="filterProducts('Earrings',this)">Earrings</button>
-<button class="filter" onclick="filterProducts('Bracelets',this)">Bracelets</button>
-</div>
-<div class="products" id="products"><div class="loading-products">Loading our collection...</div></div>
+
+
+<!-- =========================================
+     ABOUT
+========================================= -->
+
+<section
+    class="about"
+    id="about"
+>
+
+    <div class="about-image">
+
+        <img
+            src="images/about.jpg"
+            alt="Ariaa Jewels"
+        >
+
+    </div>
+
+
+    <div class="about-content">
+
+        <small>
+            THE ARIAA STORY
+        </small>
+
+        <h2>
+            Made For Moments That Matter
+        </h2>
+
+        <p>
+            At Ariaa Jewels, we believe jewelry
+            is more than an accessory.
+        </p>
+
+        <p>
+            Every piece is selected to bring
+            elegance, beauty and confidence
+            to your everyday moments and
+            special occasions.
+        </p>
+
+        <a
+            href="#collection"
+            class="gold-button"
+        >
+            VIEW COLLECTION
+        </a>
+
+    </div>
+
 </section>
 
-<section class="about" id="about">
-<div class="about-image"><img src="images/about.jpg" alt="Ariaa Jewels"></div>
-<div class="about-content">
-<small>THE ARIAA STORY</small>
-<h2>Made For Moments That Matter</h2>
-<p>At Ariaa Jewels, we believe jewelry is more than an accessory.</p>
-<p>Every piece is selected to bring elegance, beauty and confidence to your everyday moments and special occasions.</p>
-<a href="#collection" class="gold-button">VIEW COLLECTION</a>
-</div>
-</section>
 
-<nav class="mobile-bottom-nav" aria-label="Quick navigation">
-<a href="#home" aria-label="Home"><span>⌂</span><small>Home</small></a>
-<a href="#collection" aria-label="Shop collection"><span>♡</span><small>Shop</small></a>
-<a href="#about" aria-label="About Ariaa"><span>✧</span><small>Our story</small></a>
-<a href="track-order.html" aria-label="Track your order"><span>↗</span><small>Track</small></a>
-<button type="button" onclick="openJewelBox()" aria-label="Open my jewel box"><span>♢</span><small>My bag</small><b id="mobileCartCount">0</b></button>
-</nav>
+
+<!-- =========================================
+     FOOTER
+========================================= -->
 
 <footer id="contact">
-<div class="footer-grid">
-<div><h3>ARIAA JEWELS</h3><p>Timeless jewelry designed to make every moment shine.</p></div>
-<div><h3>SHOP</h3><a href="#collection">Collection</a><a href="#collection">Necklaces</a><a href="#collection">Rings</a><a href="#collection">Earrings</a></div>
-<div><h3>CONTACT</h3><p>hello@ariaajewels.com</p><p>+91 98765 43210</p></div>
-</div>
-<div class="copyright">© 2026 Ariaa Jewels. All Rights Reserved.</div>
+
+    <div class="footer-grid">
+
+        <div>
+
+            <h3>
+                ARIAA JEWELS
+            </h3>
+
+            <p>
+                Timeless jewelry designed
+                to make every moment shine.
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <h3>
+                SHOP
+            </h3>
+
+            <a href="#collection">
+                Collection
+            </a>
+
+            <a href="#collection">
+                Necklaces
+            </a>
+
+            <a href="#collection">
+                Rings
+            </a>
+
+            <a href="#collection">
+                Earrings
+            </a>
+
+        </div>
+
+
+        <div>
+
+            <h3>
+                CONTACT
+            </h3>
+
+            <p>
+                hello@ariaajewels.com
+            </p>
+
+            <p>
+                +91 98765 43210
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="copyright">
+
+        © 2026 Ariaa Jewels.
+        All Rights Reserved.
+
+    </div>
+
 </footer>
 
-<div class="overlay" id="overlay" onclick="closeJewelBox()"></div>
-<aside class="jewel-box" id="jewelBox">
-<div class="jewel-header">
-<button onclick="closeJewelBox()">×</button>
-<div class="diamond">◇</div><h2>My Jewel Box</h2><p>Your chosen treasures</p>
-</div>
-<div class="jewel-items" id="cartItems"></div>
-<div class="jewel-footer">
-<div><span>Collection Total</span><strong id="cartTotal">₹0</strong></div>
-<button onclick="checkout()" class="gold-button full">CONTINUE TO CHECKOUT</button>
-<a href="track-order.html" class="track-order-jewel-button">♡ TRACK MY ORDER</a>
-</div>
+
+
+<!-- =========================================
+     JEWEL BOX OVERLAY
+========================================= -->
+
+<div
+    class="overlay"
+    id="overlay"
+    onclick="closeJewelBox()"
+></div>
+
+
+
+<!-- =========================================
+     JEWEL BOX
+========================================= -->
+
+<aside
+    class="jewel-box"
+    id="jewelBox"
+>
+
+    <div class="jewel-header">
+
+        <button
+            onclick="closeJewelBox()"
+        >
+            ×
+        </button>
+
+        <div class="diamond">
+            ◇
+        </div>
+
+        <h2>
+            My Jewel Box
+        </h2>
+
+        <p>
+            Your chosen treasures
+        </p>
+
+    </div>
+
+
+    <div
+        class="jewel-items"
+        id="cartItems"
+    ></div>
+
+
+    <div class="jewel-footer">
+
+        <div>
+
+            <span>
+                Collection Total
+            </span>
+
+            <strong id="cartTotal">
+                ₹0
+            </strong>
+
+        </div>
+
+
+        <button
+            onclick="checkout()"
+            class="gold-button full"
+        >
+            CONTINUE TO CHECKOUT
+        </button>
+        <a
+        href="track-order.html"
+        class="track-order-jewel-button"
+        >
+        ♡ TRACK MY ORDER
+        </a>
+
+    </div>
+
 </aside>
 
-<div class="checkout-overlay" id="checkoutOverlay">
-<div class="checkout-box">
-<button class="checkout-close" onclick="closeCheckout()">×</button>
-<div class="checkout-header"><small>ARIAA JEWELS</small><h2>Complete Your Order</h2><p>Please enter your delivery details below.</p></div>
-<form id="checkoutForm" onsubmit="placeOrder(event)">
-<div class="checkout-field"><label for="customerName">Full Name</label><input type="text" id="customerName" placeholder="Your full name" required></div>
-<div class="checkout-field"><label for="customerPhone">Mobile Number</label><input type="tel" id="customerPhone" placeholder="9876543210" pattern="[0-9]{10}" maxlength="10" required></div>
-<div class="checkout-field"><label for="customerEmail">Email Address</label><input type="email" id="customerEmail" placeholder="your@email.com"></div>
-<div class="checkout-field"><label for="customerAddress">Full Delivery Address</label><textarea id="customerAddress" placeholder="House/Flat number, street, area" rows="3" required></textarea></div>
-<div class="checkout-row">
-<div class="checkout-field"><label for="customerCity">City</label><input type="text" id="customerCity" placeholder="City" required></div>
-<div class="checkout-field"><label for="customerState">State</label><input type="text" id="customerState" placeholder="State" required></div>
-</div>
-<div class="checkout-field"><label for="customerPincode">PIN Code</label><input type="text" id="customerPincode" placeholder="411001" pattern="[0-9]{6}" maxlength="6" required></div>
-<div class="checkout-summary"><h3>Your Order</h3><div id="checkoutItems"></div><div class="checkout-total"><span>Total</span><strong id="checkoutTotal">₹0</strong></div></div>
-<button type="submit" class="gold-button full" id="placeOrderButton">PLACE ORDER</button>
-</form>
-</div>
+
+
+<!-- =========================================
+     CHECKOUT
+========================================= -->
+
+<div
+    class="checkout-overlay"
+    id="checkoutOverlay"
+>
+
+    <div class="checkout-box">
+
+        <button
+            class="checkout-close"
+            onclick="closeCheckout()"
+        >
+            ×
+        </button>
+
+
+        <div class="checkout-header">
+
+            <small>
+                ARIAA JEWELS
+            </small>
+
+            <h2>
+                Complete Your Order
+            </h2>
+
+            <p>
+                Please enter your delivery details below.
+            </p>
+
+        </div>
+
+
+        <form
+            id="checkoutForm"
+            onsubmit="placeOrder(event)"
+        >
+
+
+            <!-- NAME -->
+
+            <div class="checkout-field">
+
+                <label for="customerName">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    id="customerName"
+                    placeholder="Your full name"
+                    required
+                >
+
+            </div>
+
+
+            <!-- PHONE -->
+
+            <div class="checkout-field">
+
+                <label for="customerPhone">
+                    Mobile Number
+                </label>
+
+                <input
+                    type="tel"
+                    id="customerPhone"
+                    placeholder="9876543210"
+                    pattern="[0-9]{10}"
+                    maxlength="10"
+                    required
+                >
+
+            </div>
+
+
+            <!-- EMAIL -->
+
+            <div class="checkout-field">
+
+                <label for="customerEmail">
+                    Email Address
+                </label>
+
+                <input
+                    type="email"
+                    id="customerEmail"
+                    placeholder="your@email.com"
+                >
+
+            </div>
+
+
+            <!-- ADDRESS -->
+
+            <div class="checkout-field">
+
+                <label for="customerAddress">
+                    Full Delivery Address
+                </label>
+
+                <textarea
+                    id="customerAddress"
+                    placeholder="House/Flat number, street, area"
+                    rows="3"
+                    required
+                ></textarea>
+
+            </div>
+
+
+            <!-- CITY / STATE -->
+
+            <div class="checkout-row">
+
+                <div class="checkout-field">
+
+                    <label for="customerCity">
+                        City
+                    </label>
+
+                    <input
+                        type="text"
+                        id="customerCity"
+                        placeholder="City"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="checkout-field">
+
+                    <label for="customerState">
+                        State
+                    </label>
+
+                    <input
+                        type="text"
+                        id="customerState"
+                        placeholder="State"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- PINCODE -->
+
+            <div class="checkout-field">
+
+                <label for="customerPincode">
+                    PIN Code
+                </label>
+
+                <input
+                    type="text"
+                    id="customerPincode"
+                    placeholder="411001"
+                    pattern="[0-9]{6}"
+                    maxlength="6"
+                    required
+                >
+
+            </div>
+
+
+            <!-- ORDER SUMMARY -->
+
+            <div class="checkout-summary">
+
+                <h3>
+                    Your Order
+                </h3>
+
+                <div id="checkoutItems"></div>
+
+                <div class="checkout-total">
+
+                    <span>
+                        Total
+                    </span>
+
+                    <strong id="checkoutTotal">
+                        ₹0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- PLACE ORDER -->
+
+            <button
+                type="submit"
+                class="gold-button full"
+                id="placeOrderButton"
+            >
+                PLACE ORDER
+            </button>
+
+
+        </form>
+
+    </div>
+
 </div>
 
-<div class="confirmation-overlay" id="confirmationOverlay">
-<div class="confirmation-box">
-<div class="order-confirmation-symbol">◇</div>
-<div class="order-confirmation-eyebrow">ARIAA JEWELS</div>
-<h1>Your Jewel Box Is Ready</h1>
-<p class="order-confirmation-message">Thank you for choosing Ariaa. Your order has been successfully placed and is now awaiting confirmation from our team.</p>
-<div class="order-status">ORDER PLACED • AWAITING CONFIRMATION</div>
-<div class="order-id-box"><span class="order-id-label">YOUR ORDER ID</span><strong class="order-id-value" id="confirmationOrderId">ARIAA-XXXXXXXX</strong><button type="button" class="copy-order-button" onclick="copyOrderId()">COPY ORDER ID</button></div>
-<div class="order-jewel-message"><p>Every piece tells a story. Thank you for letting Ariaa be part of yours.</p></div>
-<div class="order-confirmation-actions"><a href="track-order.html" class="gold-button">♡ TRACK MY ORDER</a><button type="button" onclick="closeConfirmation()" class="order-home-button">CONTINUE SHOPPING</button></div>
+
+
+<!-- =========================================
+     ORDER CONFIRMATION
+========================================= -->
+
+<div
+    class="confirmation-overlay"
+    id="confirmationOverlay"
+>
+
+    <div class="confirmation-box">
+
+
+        <!-- JEWEL SYMBOL -->
+
+        <div class="order-confirmation-symbol">
+            ◇
+        </div>
+
+
+        <!-- BRAND -->
+
+        <div class="order-confirmation-eyebrow">
+            ARIAA JEWELS
+        </div>
+
+
+        <!-- TITLE -->
+
+        <h1>
+            Your Jewel Box Is Ready
+        </h1>
+
+
+        <!-- MESSAGE -->
+
+        <p class="order-confirmation-message">
+            Thank you for choosing Ariaa.
+            Your order has been successfully placed
+            and is now awaiting confirmation from our team.
+        </p>
+
+
+        <!-- STATUS -->
+
+        <div class="order-status">
+            ORDER PLACED • AWAITING CONFIRMATION
+        </div>
+
+
+        <!-- ORDER ID -->
+
+        <div class="order-id-box">
+
+            <span class="order-id-label">
+                YOUR ORDER ID
+            </span>
+
+            <strong
+                class="order-id-value"
+                id="confirmationOrderId"
+            >
+                ARIAA-XXXXXXXX
+            </strong>
+
+
+            <button
+                type="button"
+                class="copy-order-button"
+                onclick="copyOrderId()"
+            >
+                COPY ORDER ID
+            </button>
+
+        </div>
+
+
+        <!-- JEWEL MESSAGE -->
+
+        <div class="order-jewel-message">
+
+            <p>
+                Every piece tells a story.
+                Thank you for letting Ariaa
+                be part of yours.
+            </p>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="order-confirmation-actions">
+
+
+            <a
+                href="track-order.html"
+                class="gold-button"
+            >
+                ♡ TRACK MY ORDER
+            </a>
+
+
+            <button
+                type="button"
+                onclick="closeConfirmation()"
+                class="order-home-button"
+            >
+                CONTINUE SHOPPING
+            </button>
+
+
+        </div>
+
+
+    </div>
+
 </div>
-</div>
+
+
+
+<!-- =========================================
+     SUPABASE
+========================================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<!-- =========================================
+     SUPABASE CONFIG
+========================================= -->
+
 <script src="supabase-config.js"></script>
+
+
+<!-- =========================================
+     WEBSITE JAVASCRIPT
+========================================= -->
+
 <script src="script.js"></script>
+
+
 </body>
+
 </html>
