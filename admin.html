@@ -603,6 +603,104 @@
 
         </section>
 
+        
+<!-- ORDERS SECTION -->
+<section class="admin-section" id="ordersSection">
+    <div class="section-heading">
+        <div>
+            <small>ORDER MANAGEMENT</small>
+            <h2>Customer Orders</h2>
+        </div>
+        <button class="admin-button" onclick="loadOrders()">
+            REFRESH ORDERS
+        </button>
+    </div>
+
+    <div class="order-toolbar">
+        <input
+            id="orderSearch"
+            type="search"
+            placeholder="Search order ID, name or phone"
+            oninput="renderOrders()"
+        >
+
+        <select id="orderStatusFilter" onchange="renderOrders()">
+            <option value="">All statuses</option>
+            <option value="awaiting_confirmation">Awaiting confirmation</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+    </div>
+
+    <div id="ordersMessage" class="admin-message"></div>
+
+    <div class="products-table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ORDER</th>
+                    <th>CUSTOMER</th>
+                    <th>TOTAL</th>
+                    <th>STATUS</th>
+                    <th>DATE</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="adminOrders">
+                <tr><td colspan="6">Open Orders to load records.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- REPORTS SECTION -->
+<section class="admin-section" id="reportsSection">
+    <div class="section-heading">
+        <div>
+            <small>BUSINESS RECORDS</small>
+            <h2>Order Reports</h2>
+        </div>
+    </div>
+
+    <p>Choose a date range and optionally filter by order status.
+       Export the matching records to a spreadsheet-compatible CSV file.</p>
+
+    <div class="report-filters">
+        <label>
+            From
+            <input type="date" id="reportFrom">
+        </label>
+
+        <label>
+            To
+            <input type="date" id="reportTo">
+        </label>
+
+        <label>
+            Order status
+            <select id="reportStatus">
+                <option value="">All statuses</option>
+                <option value="awaiting_confirmation">Awaiting confirmation</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </label>
+    </div>
+
+    <button class="admin-button" onclick="downloadOrderReport()">
+        DOWNLOAD ORDER REPORT (CSV)
+    </button>
+
+    <p id="reportMessage" role="status"></p>
+</section>
+
+
 
     </main>
 
