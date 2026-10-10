@@ -924,3 +924,24 @@ tbody tr:hover {
     }
 }
 
+.report-download-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.report-download-buttons .admin-button {
+    min-height: 44px;
+}
+
+@media (max-width: 700px) {
+    .report-download-buttons {
+        flex-direction: column;
+    }
+
+    .report-download-buttons .admin-button {
+        width: 100%;
+    }
+}
+
