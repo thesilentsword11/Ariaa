@@ -342,6 +342,11 @@ function updateCart() {
 
     }
 
+    const mobileCartCount = document.getElementById("mobileCartCount");
+    if (mobileCartCount) {
+        mobileCartCount.textContent = count;
+    }
+
     if (
         cart.length === 0
     ) {
