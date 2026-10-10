@@ -1147,3 +1147,57 @@ tbody tr:hover {
   .admin-section { padding:17px 10px !important; }
   .section-heading h2 { font-size:23px !important; }
 }
+
+
+/* MOBILE QUICK ACTIONS: keep Store and Logout clearly visible on phones */
+.mobile-admin-actions {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .mobile-admin-actions {
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        width: 100%;
+        box-sizing: border-box;
+        gap: 10px;
+        padding: 10px 16px;
+        background: rgba(255, 249, 247, 0.97);
+        border-bottom: 1px solid #ead8df;
+        box-shadow: 0 4px 14px rgba(112, 67, 83, 0.07);
+    }
+    .mobile-view-store,
+    .mobile-logout-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex: 1;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #e3c4d0;
+        border-radius: 13px;
+        background: #fff;
+        color: #70475b;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .2px;
+        text-decoration: none;
+        cursor: pointer;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .mobile-view-store {
+        background: linear-gradient(135deg, #fff7fa, #f8e8ef);
+    }
+    .mobile-logout-button {
+        background: #fff;
+    }
+    .mobile-view-store:active,
+    .mobile-logout-button:active {
+        transform: scale(.98);
+    }
+}
