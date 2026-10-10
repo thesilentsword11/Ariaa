@@ -693,9 +693,21 @@
         </label>
     </div>
 
-    <button class="admin-button" onclick="downloadOrderReport()">
-        DOWNLOAD ORDER REPORT (CSV)
+    
+<div class="report-download-buttons">
+    <button class="admin-button" onclick="downloadOrderReport('detailed')">
+        DOWNLOAD DETAILED PDF
     </button>
+
+    <button class="admin-button" onclick="downloadOrderReport('summary')">
+        DOWNLOAD SUMMARY PDF
+    </button>
+
+    <button class="admin-button" onclick="downloadOrderCSV()">
+        EXPORT TO CSV
+    </button>
+</div>
+
 
     <p id="reportMessage" role="status"></p>
 </section>
