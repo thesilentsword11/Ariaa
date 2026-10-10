@@ -1050,3 +1050,41 @@ tbody tr:hover {
         min-width: 590px;
     }
 }
+
+
+/* Campus Priority — cute, welcoming local-delivery workspace */
+#campusSection .section-heading { align-items:center; gap:18px; }
+#campusSection .section-heading > div > small { display:inline-flex; align-items:center; gap:7px; padding:7px 11px; border-radius:99px; background:#faeaf0; color:#9a687c; letter-spacing:1.4px; }
+#campusSection .section-heading > div > small::before { content:'♡'; font-size:14px; }
+#campusSection .section-heading h2 { margin-top:12px; color:#4b3040; letter-spacing:-.5px; }
+#campusSection .campus-intro { max-width:520px; color:#8a737f; line-height:1.7; }
+#campusSection .campus-layout { gap:22px; align-items:start; }
+#campusSection .campus-form, #campusSection .campus-list-panel { border:1px solid #f0dce4; border-radius:20px; background:linear-gradient(145deg,#fffdfd,#fff7fa); box-shadow:0 12px 32px rgba(92,53,72,.055); }
+#campusSection .campus-form { padding:25px; }
+#campusSection .campus-form-title { margin-bottom:22px; padding-bottom:17px; border-bottom:1px solid #f0e1e6; }
+#campusSection .campus-form-title h3, #campusSection .campus-list-heading h3 { color:#593b4a; font-family:Georgia,serif; font-weight:500; font-size:22px; }
+#campusSection .campus-form-title h3::before { content:'✿'; display:inline-grid; place-items:center; width:31px; height:31px; margin-right:9px; border-radius:11px; background:#f9e5ec; color:#b57f94; font-family:Arial,sans-serif; font-size:17px; vertical-align:middle; }
+#campusSection .campus-form-title p { margin-top:8px; color:#927d87; font-size:12px; line-height:1.6; }
+#campusSection .form-field label { color:#684e5b; font-size:12px; font-weight:700; }
+#campusSection .form-field input:not([type=checkbox]) { min-height:45px; border:1px solid #eadbe2; border-radius:11px; background:#fff; }
+#campusSection .form-field input:not([type=checkbox]):focus { outline:none; border-color:#c18da1; box-shadow:0 0 0 4px rgba(193,141,161,.13); }
+#campusSection .switch-row { display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #f0dce5; border-radius:12px; background:#fff3f7; color:#8d6074 !important; }
+#campusSection .form-actions { gap:10px; margin-top:20px; }
+#campusSection .admin-button { border-radius:11px; background:linear-gradient(115deg,#bd879c,#9d6f89); box-shadow:0 6px 16px rgba(157,111,137,.16); }
+#campusSection .admin-button:hover { filter:brightness(.97); transform:translateY(-1px); }
+#campusSection .cancel-button, #campusSection .action-button { border-radius:10px; }
+#campusSection .campus-list-panel { padding:22px; min-width:0; }
+#campusSection .campus-list-heading { margin-bottom:16px; }
+#campusSection .campus-table { border-collapse:separate; border-spacing:0 7px; min-width:650px; }
+#campusSection .campus-table thead th { background:transparent; color:#a0808e; font-size:10px; letter-spacing:1px; text-transform:uppercase; }
+#campusSection .campus-table tbody tr { background:#fff; box-shadow:0 2px 9px rgba(80,49,65,.045); }
+#campusSection .campus-table tbody td { border-top:1px solid #f3e5eb; border-bottom:1px solid #f3e5eb; color:#6d5662; }
+#campusSection .campus-table tbody td:first-child { border-left:1px solid #f3e5eb; border-radius:10px 0 0 10px; }
+#campusSection .campus-table tbody td:last-child { border-right:1px solid #f3e5eb; border-radius:0 10px 10px 0; }
+#campusSection .campus-table td small { color:#a18b96; }
+#campusSection #campusMessage { border-radius:12px; }
+@media(max-width:600px) {
+  #campusSection .section-heading { align-items:flex-start; }
+  #campusSection .campus-form, #campusSection .campus-list-panel { padding:16px; border-radius:16px; }
+  #campusSection .campus-form-title h3 { font-size:19px; }
+}
