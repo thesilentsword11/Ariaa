@@ -1474,3 +1474,290 @@ function escapeHtml(value) {
         );
 
 }
+
+
+/* =========================================
+   ARIAA ORDER MANAGEMENT
+========================================= */
+
+let allAdminOrders = [];
+
+async function loadOrders() {
+    const table = document.getElementById("adminOrders");
+    if (!table) return;
+
+    table.innerHTML = '<tr><td colspan="6">Loading orders...</td></tr>';
+
+    const { data, error } = await adminClient
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        table.innerHTML = '<tr><td colspan="6">Could not load orders. Check your admin SELECT policy.</td></tr>';
+        return;
+    }
+
+    allAdminOrders = data || [];
+    renderOrders();
+}
+
+function renderOrders() {
+    const table = document.getElementById("adminOrders");
+    if (!table) return;
+
+    const search = (
+        document.getElementById("orderSearch")?.value || ""
+    ).trim().toLowerCase();
+
+    const status = document.getElementById("orderStatusFilter")?.value || "";
+
+    const filtered = allAdminOrders.filter(order => {
+        const matchesSearch = [
+            order.order_id,
+            order.customer_name,
+            order.customer_phone
+        ].some(value => String(value || "").toLowerCase().includes(search));
+
+        return matchesSearch && (!status || order.order_status === status);
+    });
+
+    if (!filtered.length) {
+        table.innerHTML = '<tr><td colspan="6">No matching orders found.</td></tr>';
+        return;
+    }
+
+    table.innerHTML = "";
+
+    filtered.forEach(order => {
+        const row = document.createElement("tr");
+        const date = order.created_at
+            ? new Date(order.created_at).toLocaleDateString("en-IN")
+            : "—";
+
+        row.innerHTML = `
+            <td>
+                <strong>${escapeHtml(order.order_id)}</strong>
+                <br><small>${escapeHtml(order.payment_status || "pending")}</small>
+            </td>
+            <td>
+                ${escapeHtml(order.customer_name)}
+                <br><small>${escapeHtml(order.customer_phone)}</small>
+            </td>
+            <td>₹${Number(order.total_amount || 0).toLocaleString("en-IN")}</td>
+            <td>
+                <select aria-label="Order status"
+                    onchange="updateOrderStatus('${escapeHtml(order.order_id)}', this.value)">
+                    ${[
+                        "awaiting_confirmation", "confirmed", "processing",
+                        "shipped", "delivered", "cancelled"
+                    ].map(s => `<option value="${s}" ${order.order_status === s ? "selected" : ""}>${s.replace(/_/g, " ")}</option>`).join("")}
+                </select>
+            </td>
+            <td>${escapeHtml(date)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-button edit"
+                        onclick="editOrder('${escapeHtml(order.order_id)}')">EDIT</button>
+                    <button class="action-button delete"
+                        onclick="deleteOrder('${escapeHtml(order.order_id)}')">DELETE</button>
+                </div>
+            </td>
+        `;
+
+        table.appendChild(row);
+    });
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+    const allowed = [
+        "awaiting_confirmation", "confirmed", "processing",
+        "shipped", "delivered", "cancelled"
+    ];
+
+    if (!allowed.includes(newStatus)) return;
+
+    const { error } = await adminClient
+        .from("orders")
+        .update({
+            order_status: newStatus,
+            updated_at: new Date().toISOString()
+        })
+        .eq("order_id", orderId);
+
+    if (error) {
+        alert("Could not update order status: " + error.message);
+        await loadOrders();
+        return;
+    }
+
+    const order = allAdminOrders.find(o => o.order_id === orderId);
+    if (order) {
+        order.order_status = newStatus;
+        order.updated_at = new Date().toISOString();
+    }
+
+    showAdminMessage("Order status updated.", "success");
+    renderOrders();
+}
+
+async function editOrder(orderId) {
+    const order = allAdminOrders.find(o => o.order_id === orderId);
+    if (!order) return;
+
+    const name = prompt("Customer name:", order.customer_name || "");
+    if (name === null) return;
+
+    const phone = prompt("10-digit mobile number:", order.customer_phone || "");
+    if (phone === null) return;
+
+    const email = prompt("Customer email:", order.customer_email || "");
+    if (email === null) return;
+
+    const address = prompt("Delivery address:", order.address || "");
+    if (address === null) return;
+
+    const city = prompt("City:", order.city || "");
+    if (city === null) return;
+
+    const state = prompt("State:", order.state || "");
+    if (state === null) return;
+
+    const pincode = prompt("PIN code:", order.pincode || "");
+    if (pincode === null) return;
+
+    if (!name.trim() || !/^\d{10}$/.test(phone.trim()) ||
+        !address.trim() || !city.trim() || !state.trim() ||
+        !/^\d{6}$/.test(pincode.trim())) {
+        alert("Please enter a name, valid 10-digit mobile number, address, city, state and 6-digit PIN code.");
+        return;
+    }
+
+    const { error } = await adminClient
+        .from("orders")
+        .update({
+            customer_name: name.trim(),
+            customer_phone: phone.trim(),
+            customer_email: email.trim() || null,
+            address: address.trim(),
+            city: city.trim(),
+            state: state.trim(),
+            pincode: pincode.trim(),
+            updated_at: new Date().toISOString()
+        })
+        .eq("order_id", orderId);
+
+    if (error) {
+        alert("Could not edit order: " + error.message);
+        return;
+    }
+
+    showAdminMessage("Customer and delivery details updated.", "success");
+    await loadOrders();
+}
+
+async function deleteOrder(orderId) {
+    const order = allAdminOrders.find(o => o.order_id === orderId);
+    if (!order) return;
+
+    const confirmed = confirm(
+        `Permanently delete order ${orderId}?\n\n` +
+        "Export a report first if you need to keep a record. " +
+        "This may stop the customer from tracking this order."
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await adminClient
+        .from("orders")
+        .delete()
+        .eq("order_id", orderId);
+
+    if (error) {
+        alert("Could not delete order: " + error.message);
+        return;
+    }
+
+    showAdminMessage("Order deleted.", "success");
+    await loadOrders();
+}
+
+/* =========================================
+   CSV REPORT EXPORT
+========================================= */
+
+function downloadOrderReport() {
+    const from = document.getElementById("reportFrom").value;
+    const to = document.getElementById("reportTo").value;
+    const status = document.getElementById("reportStatus").value;
+    const message = document.getElementById("reportMessage");
+
+    if (from && to && from > to) {
+        message.textContent = "The start date must be before the end date.";
+        return;
+    }
+
+    const filtered = allAdminOrders.filter(order => {
+        const date = (order.created_at || "").slice(0, 10);
+        return (!from || date >= from) &&
+            (!to || date <= to) &&
+            (!status || order.order_status === status);
+    });
+
+    if (!filtered.length) {
+        message.textContent = "No orders match those filters. Open Orders first to load the records.";
+        return;
+    }
+
+    const columns = [
+        ["Order ID", "order_id"],
+        ["Created At", "created_at"],
+        ["Customer Name", "customer_name"],
+        ["Phone", "customer_phone"],
+        ["Email", "customer_email"],
+        ["Address", "address"],
+        ["City", "city"],
+        ["State", "state"],
+        ["PIN Code", "pincode"],
+        ["Order Status", "order_status"],
+        ["Payment Status", "payment_status"],
+        ["Total Amount", "total_amount"],
+        ["Items", "items"]
+    ];
+
+    function csvCell(value) {
+        let text = value == null ? "" :
+            (typeof value === "object" ? JSON.stringify(value) : String(value));
+
+        // Prevent spreadsheet formula execution from untrusted values.
+        if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+
+        return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    const rows = [
+        columns.map(col => csvCell(col[0])).join(","),
+        ...filtered.map(order =>
+            columns.map(col => csvCell(order[col[1]])).join(",")
+        )
+    ];
+
+    const blob = new Blob(
+        ["\uFEFF" + rows.join("\r\n")],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ariaa-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    message.textContent = `Downloaded ${filtered.length} order(s).`;
+}
+
