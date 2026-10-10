@@ -123,6 +123,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     /*
+       Campus priority location form
+    */
+    const campusForm = document.getElementById("campusForm");
+    if (campusForm) {
+        campusForm.addEventListener("submit", saveCampusLocation);
+    }
+
+    /*
        Image preview
     */
 
@@ -319,6 +327,7 @@ async function showAdminPanel(user) {
     */
 
     await loadProducts();
+    await loadCampusLocations();
 
 }
 
@@ -1512,15 +1521,23 @@ function renderOrders() {
     ).trim().toLowerCase();
 
     const status = document.getElementById("orderStatusFilter")?.value || "";
+    const campusFilter = document.getElementById("orderCampusFilter")?.value || "";
 
     const filtered = allAdminOrders.filter(order => {
         const matchesSearch = [
             order.order_id,
             order.customer_name,
-            order.customer_phone
+            order.customer_phone,
+            order.campus_name,
+            order.campus_city,
+            order.campus_nearby_area
         ].some(value => String(value || "").toLowerCase().includes(search));
+        const hasCampus = Boolean(order.campus_location_id || order.campus_name);
+        const matchesCampus = !campusFilter ||
+            (campusFilter === "campus" && hasCampus) ||
+            (campusFilter === "regular" && !hasCampus);
 
-        return matchesSearch && (!status || order.order_status === status);
+        return matchesSearch && matchesCampus && (!status || order.order_status === status);
     });
 
     if (!filtered.length) {
@@ -1544,6 +1561,8 @@ function renderOrders() {
             <td>
                 ${escapeHtml(order.customer_name)}
                 <br><small>${escapeHtml(order.customer_phone)}</small>
+                ${order.campus_name ? `<br><small class="campus-order-tag">Campus: ${escapeHtml(order.campus_name)}${order.campus_city ? `, ${escapeHtml(order.campus_city)}` : ""}</small>` : ""}
+                ${order.campus_nearby_area ? `<br><small>${escapeHtml(order.campus_nearby_area)} · ${Number(order.campus_radius_km || 0)} km radius</small>` : ""}
             </td>
             <td>₹${Number(order.total_amount || 0).toLocaleString("en-IN")}</td>
             <td>
@@ -1931,6 +1950,10 @@ function downloadOrderCSV() {
             ["State", "state"],
             ["PIN Code", "pincode"],
             ["Order Status", "order_status"],
+            ["Campus / College", "campus_name"],
+            ["Campus City", "campus_city"],
+            ["Nearby Area", "campus_nearby_area"],
+            ["Campus Radius (km)", "campus_radius_km"],
             ["Payment Status", "payment_status"],
             ["Total Amount", "total_amount"],
             ["Items", "items"]
@@ -1977,3 +2000,162 @@ function downloadOrderCSV() {
 }
 
 
+
+
+/* =========================================
+   CAMPUS PRIORITY LOCATION MANAGER
+   Supabase table: campus_locations
+========================================= */
+
+function showCampusMessage(message, type = "success") {
+    const el = document.getElementById("campusMessage");
+    if (!el) return;
+    el.textContent = message;
+    el.className = `admin-message ${type}`;
+}
+
+function resetCampusForm() {
+    const form = document.getElementById("campusForm");
+    if (form) form.reset();
+    document.getElementById("campusId").value = "";
+    document.getElementById("campusRadius").value = "3";
+    document.getElementById("campusActive").checked = true;
+    document.getElementById("campusFormTitle").textContent = "Add a campus or nearby area";
+    document.getElementById("saveCampusButton").textContent = "SAVE LOCATION";
+    const message = document.getElementById("campusMessage");
+    if (message) {
+        message.textContent = "";
+        message.className = "admin-message";
+    }
+}
+
+async function loadCampusLocations() {
+    const tbody = document.getElementById("campusLocations");
+    if (!tbody || !adminClient) return;
+
+    tbody.innerHTML = '<tr><td colspan="5" class="table-loading">Loading campus locations...</td></tr>';
+
+    const { data, error } = await adminClient
+        .from("campus_locations")
+        .select("id, campus_name, city, nearby_area, radius_km, is_active, created_at")
+        .order("city", { ascending: true })
+        .order("campus_name", { ascending: true });
+
+    if (error) {
+        tbody.innerHTML = `<tr><td colspan="5" class="table-loading">Could not load locations. Run the supplied SQL setup in Supabase, then refresh. (${escapeCampusText(error.message)})</td></tr>`;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="table-loading">No locations yet. Add your first college or nearby area.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = data.map(location => `
+        <tr>
+            <td>
+                <div class="campus-location-name">${escapeCampusText(location.campus_name)}</div>
+                <small>${escapeCampusText(location.nearby_area || "College / campus")}</small>
+            </td>
+            <td>${escapeCampusText(location.city)}</td>
+            <td>${Number(location.radius_km || 0)} km</td>
+            <td><span class="status-badge ${location.is_active ? "available" : "unavailable"}">${location.is_active ? "Active" : "Hidden"}</span></td>
+            <td>
+                <div class="action-buttons campus-actions">
+                    <button type="button" class="action-button edit" onclick="editCampusLocation('${location.id}')">EDIT</button>
+                    <button type="button" class="action-button delete" onclick="deleteCampusLocation('${location.id}')">DELETE</button>
+                </div>
+            </td>
+        </tr>
+    `).join("");
+}
+
+function escapeCampusText(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+async function saveCampusLocation(event) {
+    event.preventDefault();
+    if (!adminClient) return;
+
+    const id = document.getElementById("campusId").value.trim();
+    const campus_name = document.getElementById("campusName").value.trim();
+    const city = document.getElementById("campusCity").value.trim();
+    const nearby_area = document.getElementById("campusArea").value.trim() || null;
+    const radius_km = Number(document.getElementById("campusRadius").value);
+    const is_active = document.getElementById("campusActive").checked;
+
+    if (!campus_name || !city || !Number.isFinite(radius_km) || radius_km < 0 || radius_km > 100) {
+        showCampusMessage("Enter a college/location, city, and a valid radius between 0 and 100 km.", "error");
+        return;
+    }
+
+    const button = document.getElementById("saveCampusButton");
+    button.disabled = true;
+    button.textContent = id ? "UPDATING..." : "SAVING...";
+
+    const record = { campus_name, city, nearby_area, radius_km, is_active };
+    const result = id
+        ? await adminClient.from("campus_locations").update(record).eq("id", id)
+        : await adminClient.from("campus_locations").insert(record);
+
+    button.disabled = false;
+    button.textContent = id ? "UPDATE LOCATION" : "SAVE LOCATION";
+
+    if (result.error) {
+        showCampusMessage(`Could not save location: ${result.error.message}. Check that the SQL setup has been run in Supabase.`, "error");
+        return;
+    }
+
+    showCampusMessage(id ? "Campus location updated." : "Campus location added.");
+    resetCampusForm();
+    await loadCampusLocations();
+}
+
+async function editCampusLocation(id) {
+    const { data, error } = await adminClient
+        .from("campus_locations")
+        .select("id, campus_name, city, nearby_area, radius_km, is_active")
+        .eq("id", id)
+        .single();
+
+    if (error || !data) {
+        showCampusMessage(`Could not open this location: ${error?.message || "Record not found."}`, "error");
+        return;
+    }
+
+    document.getElementById("campusId").value = data.id;
+    document.getElementById("campusName").value = data.campus_name || "";
+    document.getElementById("campusCity").value = data.city || "";
+    document.getElementById("campusArea").value = data.nearby_area || "";
+    document.getElementById("campusRadius").value = data.radius_km ?? 3;
+    document.getElementById("campusActive").checked = Boolean(data.is_active);
+    document.getElementById("campusFormTitle").textContent = "Edit campus or nearby area";
+    document.getElementById("saveCampusButton").textContent = "UPDATE LOCATION";
+    document.getElementById("campusForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    showCampusMessage("Edit the details and select Update Location when finished.");
+}
+
+async function deleteCampusLocation(id) {
+    const confirmed = confirm("Delete this campus/area? It will no longer be available as a priority delivery option.");
+    if (!confirmed) return;
+
+    const { error } = await adminClient
+        .from("campus_locations")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        showCampusMessage(`Could not delete location: ${error.message}`, "error");
+        return;
+    }
+
+    showCampusMessage("Campus location deleted.");
+    await loadCampusLocations();
+}
