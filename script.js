@@ -607,7 +607,46 @@ function closeJewelBox() {
    OPEN CHECKOUT
 ================================= */
 
+let availableCampusLocations = [];
+let campusLocationsLoadAttempted = false;
+
+async function loadCheckoutCampusLocations() {
+    const select = document.getElementById("customerCampusLocation");
+    if (!select || !window.supabaseClient) return;
+
+    const previousValue = select.value;
+    try {
+        const { data, error } = await window.supabaseClient
+            .from("campus_locations")
+            .select("id, campus_name, city, nearby_area, radius_km")
+            .eq("is_active", true)
+            .order("city", { ascending: true })
+            .order("campus_name", { ascending: true });
+
+        if (error) throw error;
+        availableCampusLocations = data || [];
+        select.innerHTML = '<option value="">Not applicable / Prefer not to say</option>';
+        availableCampusLocations.forEach(location => {
+            const option = document.createElement("option");
+            option.value = location.id;
+            const area = location.nearby_area ? ` — ${location.nearby_area}` : "";
+            option.textContent = `${location.campus_name} (${location.city})${area}`;
+            select.appendChild(option);
+        });
+        if (availableCampusLocations.some(location => location.id === previousValue)) {
+            select.value = previousValue;
+        }
+        campusLocationsLoadAttempted = true;
+    } catch (error) {
+        // Campus selection is optional; checkout remains usable if the SQL setup is not installed yet.
+        console.warn("Campus options could not be loaded. Run campus-locations-setup.sql in Supabase when ready.", error.message || error);
+        select.innerHTML = '<option value="">Not available — continue without selecting</option>';
+    }
+}
+
 function checkout() {
+
+    loadCheckoutCampusLocations();
 
     if (
         cart.length === 0
@@ -869,6 +908,10 @@ async function placeOrder(
                 )
                 .value
                 .trim();
+        const campusSelect = document.getElementById("customerCampusLocation");
+        const selectedCampus = campusSelect && campusSelect.value
+            ? availableCampusLocations.find(location => location.id === campusSelect.value)
+            : null;
 
 
         /* =============================
@@ -998,6 +1041,21 @@ async function placeOrder(
 
                 pincode:
                     customerPincode,
+
+                campus_location_id:
+                    selectedCampus ? selectedCampus.id : null,
+
+                campus_name:
+                    selectedCampus ? selectedCampus.campus_name : null,
+
+                campus_city:
+                    selectedCampus ? selectedCampus.city : null,
+
+                campus_nearby_area:
+                    selectedCampus ? (selectedCampus.nearby_area || null) : null,
+
+                campus_radius_km:
+                    selectedCampus ? Number(selectedCampus.radius_km || 0) : null,
 
                 items:
                     orderItems,
