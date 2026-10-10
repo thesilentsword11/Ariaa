@@ -439,6 +439,65 @@
     }
 }
 
+
+/* ARIAA CHECKOUT — soft, cute, boutique finish */
+.checkout-overlay {
+    background: radial-gradient(circle at 15% 15%, rgba(255,225,232,.62), transparent 36%), rgba(48,31,40,.60);
+    backdrop-filter: blur(7px);
+    padding: 16px;
+}
+.checkout-box {
+    max-width: 620px; max-height: min(92vh, 920px); padding: clamp(22px, 4vw, 38px);
+    border: 1px solid #f2dce2; border-radius: 24px;
+    background: linear-gradient(145deg,#fffdfc 0%,#fff8f8 58%,#fffaf4 100%);
+    box-shadow: 0 28px 90px rgba(56,29,43,.25);
+}
+.checkout-close { right: 16px; top: 14px; width: 38px; height: 38px; border-radius: 50%;
+    background: #fff0f2; color: #8f6874; font-size: 25px; line-height: 1; transition: transform .2s, background .2s; }
+.checkout-close:hover { transform: rotate(90deg); background:#f8dfe6; }
+.checkout-header { position:relative; margin: 0 -4px 25px; padding: 7px 12px 20px; border-bottom:1px solid #f2e2e5; }
+.checkout-sparkle { display:grid; place-items:center; margin:0 auto 12px; width:42px; height:42px; border-radius:50%;
+    background:linear-gradient(135deg,#f9e0e8,#f5e9fb); color:#b1818e; font-size:22px; box-shadow:0 5px 16px #e8cbd45c; }
+.checkout-header small { color:#a87986; font-size:10px; font-weight:800; letter-spacing:2.5px; }
+.checkout-header h2 { margin:9px 0 8px; color:#3b2932; font-size:clamp(27px,4vw,35px); line-height:1.15; letter-spacing:-.7px; }
+.checkout-header p { max-width:380px; margin:0 auto; color:#897780; font-size:13px; line-height:1.65; }
+.checkout-steps { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:20px; color:#a38b93; font-size:11px; font-weight:700; }
+.checkout-step { display:flex; align-items:center; gap:7px; }
+.checkout-step i { display:grid; place-items:center; width:25px; height:25px; border:1px solid #e8d4da; border-radius:50%; font-style:normal; background:#fff; }
+.checkout-step.active { color:#8d5969; }
+.checkout-step.active i { color:white; background:#bd8998; border-color:#bd8998; }
+.checkout-step-line { width:42px; height:1px; background:#e8d4da; }
+.checkout-field { margin-bottom:16px; }
+.checkout-field label { margin-bottom:8px; color:#4a3740; font-size:12px; font-weight:750; letter-spacing:.15px; }
+.checkout-field input, .checkout-field textarea, #customerCampusLocation { border:1px solid #eadde2; border-radius:12px; padding:13px 14px; background:rgba(255,255,255,.9); color:#392b32; font-size:14px; transition:border-color .2s,box-shadow .2s,background .2s; }
+.checkout-field input::placeholder, .checkout-field textarea::placeholder { color:#b5a5ac; }
+.checkout-field input:focus, .checkout-field textarea:focus, #customerCampusLocation:focus { border-color:#c68f9e; box-shadow:0 0 0 4px rgba(198,143,158,.14); background:#fff; outline:none; }
+.checkout-row { gap:13px; }
+.campus-checkout-card { display:flex; align-items:flex-start; gap:11px; margin-bottom:11px; padding:13px; border:1px solid #f0dbe4; border-radius:15px; background:linear-gradient(120deg,#fff0f4,#fbf5ff); }
+.campus-cute-icon { flex:0 0 34px; display:grid; place-items:center; width:34px; height:34px; border-radius:12px; background:#fff; color:#b5788a; box-shadow:0 3px 10px #e7cbd555; font-size:20px; }
+.campus-checkout-copy { min-width:0; }
+.campus-checkout-copy label { display:block; margin:2px 0 5px; color:#62434f; font-size:12px; font-weight:800; }
+.campus-checkout-copy label span { display:inline-block; margin-left:5px; padding:3px 6px; border-radius:99px; background:#f2dce6; color:#986d7d; font-size:8px; letter-spacing:.7px; vertical-align:middle; }
+.campus-checkout-help { margin:0; color:#927b85; font-size:11px; line-height:1.55; }
+#customerCampusLocation { width:100%; min-height:47px; cursor:pointer; }
+.checkout-summary { margin:23px 0 17px; padding:18px; border:1px solid #efdee3; border-radius:16px; background:linear-gradient(135deg,#fff,#fff8f7); }
+.checkout-summary h3 { display:flex; align-items:center; gap:8px; margin:0 0 10px; color:#4b343e; font-size:20px; }
+.checkout-summary h3::before { content:'✧'; color:#bf8b98; font-family:serif; }
+.checkout-item { gap:12px; color:#76646d; font-size:13px; line-height:1.5; }
+.checkout-total { border-top:1px dashed #e7d3db; color:#4a303c; font-size:16px; }
+.checkout-place-order { display:flex; justify-content:center; align-items:center; gap:10px; min-height:54px; border:0; border-radius:14px !important; background:linear-gradient(110deg,#c991a1,#a9768c) !important; box-shadow:0 9px 22px rgba(169,118,140,.23); color:white; font-weight:800; letter-spacing:1.1px; transition:transform .2s,box-shadow .2s; }
+.checkout-place-order:hover { transform:translateY(-2px); box-shadow:0 13px 28px rgba(169,118,140,.3); }
+.checkout-place-order span { font-size:19px; }
+.checkout-love-note { margin:12px 4px 0; color:#a08c94; text-align:center; font-size:10px; line-height:1.6; }
+@media(max-width:600px) {
+    .checkout-overlay { align-items:flex-end; padding:8px; }
+    .checkout-box { max-height:94dvh; padding:23px 17px 18px; border-radius:24px 24px 18px 18px; }
+    .checkout-header { margin-bottom:19px; padding-bottom:17px; }
+    .checkout-field { margin-bottom:13px; }
+    .checkout-row { grid-template-columns:1fr; gap:0; }
+    .checkout-summary { padding:15px; }
+}
+
 </style>
 
 </head>
@@ -964,19 +1023,15 @@
 
 
         <div class="checkout-header">
-
-            <small>
-                ARIAA JEWELS
-            </small>
-
-            <h2>
-                Complete Your Order
-            </h2>
-
-            <p>
-                Please enter your delivery details below.
-            </p>
-
+            <span class="checkout-sparkle" aria-hidden="true">✦</span>
+            <small>YOUR LITTLE LUXURY</small>
+            <h2>Almost yours, lovely.</h2>
+            <p>A few little details and your Ariaa favourites are on their way.</p>
+            <div class="checkout-steps" aria-label="Checkout progress">
+                <span class="checkout-step active"><i>1</i> Details</span>
+                <span class="checkout-step-line"></span>
+                <span class="checkout-step"><i>♡</i> Your order</span>
+            </div>
         </div>
 
 
@@ -1045,14 +1100,16 @@
 
             <div class="checkout-field">
 
-                <label for="customerCampusLocation">
-                    Nearby College / Campus Area (Optional)
-                </label>
-
+                <div class="campus-checkout-card">
+                    <span class="campus-cute-icon" aria-hidden="true">♡</span>
+                    <div class="campus-checkout-copy">
+                        <label for="customerCampusLocation">Campus cutie? Tell us your area <span>OPTIONAL</span></label>
+                        <small class="campus-checkout-help">Choose your college or nearby area to help us spot local delivery orders. No location tracking — you choose what to share.</small>
+                    </div>
+                </div>
                 <select id="customerCampusLocation">
-                    <option value="">Not applicable / Prefer not to say</option>
+                    <option value="">I’ll skip this for now</option>
                 </select>
-                <small class="campus-checkout-help">Choose a listed college or nearby area if it applies to your delivery.</small>
 
             </div>
 
@@ -1162,11 +1219,12 @@
 
             <button
                 type="submit"
-                class="gold-button full"
+                class="gold-button full checkout-place-order"
                 id="placeOrderButton"
             >
-                PLACE ORDER
+                PLACE MY ORDER <span aria-hidden="true">♡</span>
             </button>
+            <p class="checkout-love-note">♡ Made with love. Your details are only used to complete your order.</p>
 
 
         </form>
