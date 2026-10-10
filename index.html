@@ -606,6 +606,37 @@
 
 </section>
 
+<!-- =========================================
+     SHOP YOUR MOOD — CUTE DISCOVERY SECTION
+========================================= -->
+<section class="mood-section" aria-labelledby="moodTitle">
+    <div class="mood-intro">
+        <span class="mood-kicker">A LITTLE SOMETHING FOR YOU ♡</span>
+        <h2 id="moodTitle">What’s your kind of <em>pretty?</em></h2>
+        <p>For your soft-girl era, your everyday glow, and every little moment worth celebrating.</p>
+    </div>
+    <div class="mood-cards">
+        <button class="mood-card mood-pink" type="button" onclick="filterProducts('Earrings', document.querySelector('.filter:nth-child(4)')); document.getElementById('collection').scrollIntoView({behavior:'smooth'});">
+            <span class="mood-emoji" aria-hidden="true">♡</span>
+            <span class="mood-label">Cute & Coquette</span>
+            <span class="mood-caption">Little details, big crush</span>
+            <span class="mood-link">FIND YOUR SPARKLE ↗</span>
+        </button>
+        <button class="mood-card mood-cream" type="button" onclick="filterProducts('Necklaces', document.querySelector('.filter:nth-child(2)')); document.getElementById('collection').scrollIntoView({behavior:'smooth'});">
+            <span class="mood-emoji" aria-hidden="true">✧</span>
+            <span class="mood-label">Everyday Pretty</span>
+            <span class="mood-caption">Your daily dose of lovely</span>
+            <span class="mood-link">SHOP NECKLACES ↗</span>
+        </button>
+        <button class="mood-card mood-lilac" type="button" onclick="filterProducts('Rings', document.querySelector('.filter:nth-child(3)')); document.getElementById('collection').scrollIntoView({behavior:'smooth'});">
+            <span class="mood-emoji" aria-hidden="true">✿</span>
+            <span class="mood-label">Main Character</span>
+            <span class="mood-caption">A little extra, always</span>
+            <span class="mood-link">SHOP RINGS ↗</span>
+        </button>
+    </div>
+    <p class="mood-note">A reminder from Ariaa: you’re already the pretty thing. The jewelry is just the sparkle. ♡</p>
+</section>
 
 
 <!-- =========================================
@@ -742,6 +773,15 @@
 </section>
 
 
+
+<!-- MOBILE QUICK NAVIGATION -->
+<nav class="mobile-bottom-nav" aria-label="Quick navigation">
+    <a href="#home" aria-label="Home"><span>⌂</span><small>Home</small></a>
+    <a href="#collection" aria-label="Shop collection"><span>♡</span><small>Shop</small></a>
+    <a href="#about" aria-label="About Ariaa"><span>✧</span><small>Our story</small></a>
+    <a href="track-order.html" aria-label="Track your order"><span>↗</span><small>Track</small></a>
+    <button type="button" onclick="openJewelBox()" aria-label="Open my jewel box"><span>♢</span><small>My bag</small><b id="mobileCartCount">0</b></button>
+</nav>
 
 <!-- =========================================
      FOOTER
