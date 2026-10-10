@@ -1295,3 +1295,10 @@ button, a { touch-action: manipulation; }
         animation-duration: .01ms !important;
     }
 }
+
+
+/* Optional campus selection at checkout */
+.campus-checkout-help { display:block; margin-top:6px; color:#766b70; font-size:.82rem; line-height:1.45; }
+#customerCampusLocation { width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:10px; padding:12px; background:#fff; color:inherit; font:inherit; }
+#customerCampusLocation:focus { outline:2px solid #b8863b; outline-offset:1px; }
+.campus-order-tag { display:inline-block; margin-top:3px; color:#8b693e; font-weight:600; }
