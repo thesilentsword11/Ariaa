@@ -182,6 +182,14 @@
     <span>Reports</span>
 </button>
 
+<button
+    class="sidebar-link"
+    onclick="showAdminSection('campusSection', this); loadCampusLocations();"
+>
+    ♡
+    <span>Campus Priority</span>
+</button>
+
 
         </nav>
 
@@ -624,6 +632,12 @@
             oninput="renderOrders()"
         >
 
+        <select id="orderCampusFilter" onchange="renderOrders()">
+            <option value="">All customer areas</option>
+            <option value="campus">Campus / nearby-area orders</option>
+            <option value="regular">No campus selected</option>
+        </select>
+
         <select id="orderStatusFilter" onchange="renderOrders()">
             <option value="">All statuses</option>
             <option value="awaiting_confirmation">Awaiting confirmation</option>
@@ -653,6 +667,84 @@
                 <tr><td colspan="6">Open Orders to load records.</td></tr>
             </tbody>
         </table>
+    </div>
+</section>
+
+<!-- CAMPUS PRIORITY LOCATIONS -->
+<section class="admin-section" id="campusSection">
+    <div class="section-heading">
+        <div>
+            <small>LOCAL DELIVERY PROGRAM</small>
+            <h2>Campus Priority</h2>
+            <p class="campus-intro">Manage colleges and nearby areas eligible for priority delivery.</p>
+        </div>
+        <button class="admin-button" type="button" onclick="resetCampusForm(); document.getElementById('campusName').focus();">
+            + ADD LOCATION
+        </button>
+    </div>
+
+    <div id="campusMessage" class="admin-message" role="status"></div>
+
+    <div class="campus-layout">
+        <form class="product-form campus-form" id="campusForm">
+            <input type="hidden" id="campusId">
+            <div class="campus-form-title">
+                <h3 id="campusFormTitle">Add a campus or nearby area</h3>
+                <p>Customers will see active locations as checkout options.</p>
+            </div>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label for="campusName">College / location name</label>
+                    <input type="text" id="campusName" maxlength="160" placeholder="e.g. ABC College" required>
+                </div>
+                <div class="form-field">
+                    <label for="campusCity">City</label>
+                    <input type="text" id="campusCity" maxlength="100" placeholder="e.g. Nagpur" required>
+                </div>
+                <div class="form-field">
+                    <label for="campusArea">Nearby area (optional)</label>
+                    <input type="text" id="campusArea" maxlength="160" placeholder="e.g. within 3 km of campus">
+                </div>
+                <div class="form-field">
+                    <label for="campusRadius">Priority radius (km)</label>
+                    <input type="number" id="campusRadius" min="0" max="100" step="0.5" value="3" required>
+                    <small>Informational for now; confirm addresses before promising same-day delivery.</small>
+                </div>
+                <div class="form-field">
+                    <label class="switch-row">
+                        <input type="checkbox" id="campusActive" checked>
+                        <span>Show this option at checkout</span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="cancel-button" onclick="resetCampusForm()">CLEAR</button>
+                <button type="submit" class="admin-button" id="saveCampusButton">SAVE LOCATION</button>
+            </div>
+        </form>
+
+        <div class="campus-list-panel">
+            <div class="campus-list-heading">
+                <h3>Your locations</h3>
+                <button type="button" class="action-button" onclick="loadCampusLocations()">REFRESH</button>
+            </div>
+            <div class="products-table-wrapper">
+                <table class="campus-table">
+                    <thead>
+                        <tr>
+                            <th>College / Area</th>
+                            <th>City</th>
+                            <th>Radius</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="campusLocations">
+                        <tr><td colspan="5" class="table-loading">Open Campus Priority to load locations.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </section>
 
