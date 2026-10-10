@@ -1687,77 +1687,292 @@ async function deleteOrder(orderId) {
    CSV REPORT EXPORT
 ========================================= */
 
-function downloadOrderReport() {
-    const from = document.getElementById("reportFrom").value;
-    const to = document.getElementById("reportTo").value;
-    const status = document.getElementById("reportStatus").value;
-    const message = document.getElementById("reportMessage");
+
+function getFilteredReportOrders() {
+    const from = document.getElementById("reportFrom")?.value || "";
+    const to = document.getElementById("reportTo")?.value || "";
+    const status = document.getElementById("reportStatus")?.value || "";
 
     if (from && to && from > to) {
-        message.textContent = "The start date must be before the end date.";
-        return;
+        throw new Error("Start date must be before end date.");
     }
 
-    const filtered = allAdminOrders.filter(order => {
+    return allAdminOrders.filter(order => {
         const date = (order.created_at || "").slice(0, 10);
+
         return (!from || date >= from) &&
             (!to || date <= to) &&
             (!status || order.order_status === status);
     });
+}
 
-    if (!filtered.length) {
-        message.textContent = "No orders match those filters. Open Orders first to load the records.";
-        return;
+function reportEscape(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+function reportMoney(value) {
+    return "₹" + Number(value || 0).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function reportItems(items) {
+    if (!Array.isArray(items) || !items.length) {
+        return "No item details";
     }
 
-    const columns = [
-        ["Order ID", "order_id"],
-        ["Created At", "created_at"],
-        ["Customer Name", "customer_name"],
-        ["Phone", "customer_phone"],
-        ["Email", "customer_email"],
-        ["Address", "address"],
-        ["City", "city"],
-        ["State", "state"],
-        ["PIN Code", "pincode"],
-        ["Order Status", "order_status"],
-        ["Payment Status", "payment_status"],
-        ["Total Amount", "total_amount"],
-        ["Items", "items"]
-    ];
+    return items.map(item => {
+        const name = reportEscape(item.name || "Jewelry item");
+        const qty = Number(item.quantity || 1);
+        const price = reportMoney(item.price);
 
-    function csvCell(value) {
-        let text = value == null ? "" :
-            (typeof value === "object" ? JSON.stringify(value) : String(value));
+        return `${name} × ${qty} (${price} each)`;
+    }).join("<br>");
+}
 
-        // Prevent spreadsheet formula execution from untrusted values.
-        if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+function downloadOrderReport(type = "detailed") {
+    const message = document.getElementById("reportMessage");
 
-        return '"' + text.replace(/"/g, '""') + '"';
+    try {
+        const orders = getFilteredReportOrders();
+
+        if (!orders.length) {
+            message.textContent =
+                "No orders match these filters. Open Orders and refresh first.";
+            return;
+        }
+
+        const totalValue = orders.reduce(
+            (sum, order) => sum + Number(order.total_amount || 0), 0
+        );
+
+        const paidOrders = orders.filter(
+            order => order.payment_status === "paid"
+        );
+
+        const pendingPayments = orders.filter(
+            order => order.payment_status === "pending"
+        );
+
+        const statuses = [
+            "awaiting_confirmation", "confirmed", "processing",
+            "shipped", "delivered", "cancelled"
+        ];
+
+        const statusSummary = statuses.map(status => {
+            const count = orders.filter(
+                order => order.order_status === status
+            ).length;
+
+            return `<tr><td>${reportEscape(status.replace(/_/g, " "))}</td>
+                <td>${count}</td></tr>`;
+        }).join("");
+
+        const rows = orders.map(order => `
+            <tr>
+                <td>${reportEscape(order.order_id)}</td>
+                <td>${reportEscape(
+                    order.created_at
+                        ? new Date(order.created_at).toLocaleString("en-IN")
+                        : "—"
+                )}</td>
+                <td>${reportEscape(order.customer_name)}<br>
+                    ${reportEscape(order.customer_phone)}<br>
+                    ${reportEscape(order.customer_email || "")}</td>
+                <td>${reportEscape(order.address)}<br>
+                    ${reportEscape(order.city)}, ${reportEscape(order.state)}
+                    — ${reportEscape(order.pincode)}</td>
+                <td>${reportItems(order.items)}</td>
+                <td>${reportMoney(order.total_amount)}</td>
+                <td>${reportEscape(order.payment_status)}</td>
+                <td>${reportEscape(
+                    (order.order_status || "").replace(/_/g, " ")
+                )}</td>
+            </tr>
+        `).join("");
+
+        const isDetailed = type === "detailed";
+
+        const content = isDetailed ? `
+            <h2>Detailed Order Register</h2>
+            <p>Includes customer, delivery, item, and payment details.</p>
+            <table>
+                <thead><tr>
+                    <th>Order ID</th><th>Date</th><th>Customer</th>
+                    <th>Delivery Address</th><th>Items</th><th>Total</th>
+                    <th>Payment</th><th>Order Status</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        ` : `
+            <h2>Order Summary</h2>
+            <div class="metrics">
+                <div><strong>${orders.length}</strong><span>Total Orders</span></div>
+                <div><strong>${reportMoney(totalValue)}</strong><span>Total Order Value</span></div>
+                <div><strong>${paidOrders.length}</strong><span>Paid Orders</span></div>
+                <div><strong>${pendingPayments.length}</strong><span>Pending Payments</span></div>
+            </div>
+            <h3>Order Status Breakdown</h3>
+            <table>
+                <thead><tr><th>Status</th><th>Orders</th></tr></thead>
+                <tbody>${statusSummary}</tbody>
+            </table>
+            <h3>Order List</h3>
+            <table>
+                <thead><tr>
+                    <th>Order ID</th><th>Date</th><th>Customer</th>
+                    <th>Total</th><th>Payment</th><th>Status</th>
+                </tr></thead>
+                <tbody>
+                ${orders.map(order => `<tr>
+                    <td>${reportEscape(order.order_id)}</td>
+                    <td>${reportEscape(
+                        order.created_at
+                            ? new Date(order.created_at).toLocaleDateString("en-IN")
+                            : "—"
+                    )}</td>
+                    <td>${reportEscape(order.customer_name)}</td>
+                    <td>${reportMoney(order.total_amount)}</td>
+                    <td>${reportEscape(order.payment_status)}</td>
+                    <td>${reportEscape((order.order_status || "").replace(/_/g, " "))}</td>
+                </tr>`).join("")}
+                </tbody>
+            </table>
+        `;
+
+        const popup = window.open("", "_blank");
+
+        if (!popup) {
+            message.textContent =
+                "Allow pop-ups for your admin website, then try again.";
+            return;
+        }
+
+        popup.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ariaa Jewels - ${isDetailed ? "Detailed" : "Summary"} Report</title>
+<style>
+    body { font-family: Arial, sans-serif; color: #30251d; margin: 28px; }
+    header { border-bottom: 3px solid #b9955b; padding-bottom: 14px; }
+    h1 { letter-spacing: 4px; margin-bottom: 4px; }
+    h1, h2, h3 { color: #79582f; }
+    .sub { color: #75695e; font-size: 12px; }
+    .metrics { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0; }
+    .metrics div { border: 1px solid #d9c6a4; padding: 14px; flex: 1; min-width: 120px; }
+    .metrics strong, .metrics span { display: block; }
+    .metrics strong { font-size: 19px; margin-bottom: 6px; }
+    .metrics span { font-size: 11px; color: #75695e; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+    th { background: #f1e6d3; color: #513b25; }
+    th, td { border: 1px solid #d8cbb8; padding: 7px; text-align: left; font-size: 10px; overflow-wrap: anywhere; }
+    tr { break-inside: avoid; }
+    footer { margin-top: 24px; border-top: 1px solid #d8cbb8; padding-top: 10px; font-size: 10px; }
+    .print-button { padding: 10px 18px; background: #8b693e; color: white; border: 0; cursor: pointer; }
+    @page { size: landscape; margin: 12mm; }
+    @media print { .print-button { display: none; } body { margin: 0; } }
+</style>
+</head>
+<body>
+<header>
+    <h1>ARIAA JEWELS</h1>
+    <div>ORDER & SALES REPORT</div>
+    <p class="sub">
+        ${isDetailed ? "Detailed Order Register" : "Order Summary"} |
+        Generated: ${reportEscape(new Date().toLocaleString("en-IN"))}
+    </p>
+    <p class="sub">Orders included: ${orders.length} |
+        Total order value: ${reportMoney(totalValue)}</p>
+</header>
+${content}
+<footer>ARIAA JEWELS — Confidential business report. Keep customer information secure.</footer>
+<button class="print-button" onclick="window.print()">PRINT / SAVE AS PDF</button>
+<script>
+    window.onload = () => setTimeout(() => window.print(), 300);
+<\/script>
+</body>
+</html>`);
+
+        popup.document.close();
+        message.textContent =
+            "Report prepared. Choose Save as PDF in the print dialog.";
+
+    } catch (error) {
+        message.textContent = error.message || "Could not create report.";
     }
+}
 
-    const rows = [
-        columns.map(col => csvCell(col[0])).join(","),
-        ...filtered.map(order =>
-            columns.map(col => csvCell(order[col[1]])).join(",")
-        )
-    ];
+function downloadOrderCSV() {
+    try {
+        const orders = getFilteredReportOrders();
 
-    const blob = new Blob(
-        ["\uFEFF" + rows.join("\r\n")],
-        { type: "text/csv;charset=utf-8;" }
-    );
+        if (!orders.length) {
+            document.getElementById("reportMessage").textContent =
+                "No orders match these filters.";
+            return;
+        }
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `ariaa-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+        const columns = [
+            ["Order ID", "order_id"],
+            ["Created At", "created_at"],
+            ["Customer Name", "customer_name"],
+            ["Phone", "customer_phone"],
+            ["Email", "customer_email"],
+            ["Address", "address"],
+            ["City", "city"],
+            ["State", "state"],
+            ["PIN Code", "pincode"],
+            ["Order Status", "order_status"],
+            ["Payment Status", "payment_status"],
+            ["Total Amount", "total_amount"],
+            ["Items", "items"]
+        ];
 
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+        const cell = value => {
+            let text = value == null ? "" :
+                (typeof value === "object" ? JSON.stringify(value) : String(value));
 
-    message.textContent = `Downloaded ${filtered.length} order(s).`;
+            if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+
+            return '"' + text.replace(/"/g, '""') + '"';
+        };
+
+        const csv = [
+            columns.map(col => cell(col[0])).join(","),
+            ...orders.map(order =>
+                columns.map(col => cell(order[col[1]])).join(",")
+            )
+        ].join("\r\n");
+
+        const blob = new Blob(["\uFEFF" + csv], {
+            type: "text/csv;charset=utf-8;"
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download =
+            `ariaa-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+
+        document.getElementById("reportMessage").textContent =
+            `Downloaded ${orders.length} order(s) as CSV.`;
+
+    } catch (error) {
+        document.getElementById("reportMessage").textContent =
+            error.message || "Could not export CSV.";
+    }
 }
 
