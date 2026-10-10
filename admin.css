@@ -1088,3 +1088,62 @@ tbody tr:hover {
   #campusSection .campus-form, #campusSection .campus-list-panel { padding:16px; border-radius:16px; }
   #campusSection .campus-form-title h3 { font-size:19px; }
 }
+
+/* ARIAA MOBILE ADMIN — thumb-friendly navigation and compact workspaces */
+@media (max-width: 700px) {
+  .admin-app.visible { display:block; min-height:100dvh; }
+  .sidebar {
+    position:fixed; z-index:1000; left:0; right:0; top:auto; bottom:0;
+    width:100%; height:calc(68px + env(safe-area-inset-bottom)); min-height:0;
+    padding:7px 5px calc(7px + env(safe-area-inset-bottom));
+    background:rgba(255,250,252,.97); color:#6b4859;
+    border-top:1px solid #efdce5; box-shadow:0 -8px 28px rgba(77,42,58,.10);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  }
+  .sidebar-logo, .sidebar-title, .sidebar-bottom { display:none !important; }
+  .sidebar nav {
+    width:100%; height:100%; display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+    align-items:stretch; gap:3px;
+  }
+  .sidebar-link {
+    min-width:0; min-height:52px; align-self:stretch; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; gap:3px; padding:5px 1px;
+    border:0; border-radius:13px; color:#9a7b89; background:transparent;
+    font-size:21px; line-height:1; -webkit-tap-highlight-color:transparent;
+  }
+  .sidebar-link span { display:block !important; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; line-height:1.2; letter-spacing:0; }
+  .sidebar-link.active { background:#f7e5ed; color:#a56582; }
+  .admin-main { width:100% !important; margin:0 !important; padding:0 0 calc(82px + env(safe-area-inset-bottom)); min-width:0; }
+  .admin-header { position:sticky; top:0; z-index:50; min-height:78px; height:auto; padding:14px 16px; gap:10px; background:rgba(255,251,252,.96); border-bottom:1px solid #f0e1e7; backdrop-filter:blur(12px); }
+  .admin-header h1 { font-size:19px !important; line-height:1.2; }
+  .admin-header p { font-size:9px; letter-spacing:1.4px; }
+  .admin-user { gap:5px; font-size:12px; }
+  .admin-section { padding:20px 14px !important; min-width:0; }
+  .section-heading { gap:12px; margin-bottom:18px; }
+  .section-heading h2 { font-size:25px !important; line-height:1.15; }
+  .section-heading p, .campus-intro { font-size:13px; line-height:1.55; }
+  .product-form, #campusSection .campus-form, #campusSection .campus-list-panel { padding:15px !important; border-radius:16px; }
+  .form-grid, .campus-layout { grid-template-columns:minmax(0,1fr) !important; gap:14px; }
+  .form-field input, .form-field select, .form-field textarea, .product-form input, .product-form select, .product-form textarea { min-height:44px; max-width:100%; font-size:16px; }
+  .form-actions { display:flex; flex-direction:column; gap:9px; }
+  .form-actions button, .admin-button, .cancel-button { min-height:44px; width:100%; }
+  .products-table-wrapper { width:100%; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:14px; }
+  .products-table-wrapper table { min-width:650px; }
+  .products-table-wrapper th, .products-table-wrapper td { padding:11px 10px; white-space:nowrap; }
+  .order-toolbar, .report-filters { max-width:none; width:100%; }
+  .order-toolbar input, .order-toolbar select, .report-filters input, .report-filters select { width:100%; min-height:44px; font-size:16px; }
+  .campus-actions { gap:7px; }
+  #campusSection .campus-table { min-width:650px; }
+  #campusSection .campus-list-heading { align-items:flex-start; flex-direction:column; gap:10px; }
+  #campusSection .campus-list-heading button { width:100%; min-height:44px; }
+  .login-screen { min-height:100dvh; padding:18px; }
+  .login-card { max-width:420px; padding:30px 22px; border-radius:20px; }
+}
+
+@media (max-width: 380px) {
+  .sidebar-link span { font-size:8px; }
+  .admin-header { padding:12px; }
+  .admin-header h1 { font-size:17px !important; }
+  .admin-section { padding:17px 10px !important; }
+  .section-heading h2 { font-size:23px !important; }
+}
