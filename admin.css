@@ -945,3 +945,108 @@ tbody tr:hover {
     }
 }
 
+
+
+/* =========================================
+   CAMPUS PRIORITY LOCATION MANAGER
+========================================= */
+.campus-intro {
+    color: var(--muted);
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 620px;
+}
+.campus-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, .85fr) minmax(0, 1.4fr);
+    gap: 24px;
+    align-items: start;
+}
+.campus-form {
+    padding: 26px;
+}
+.campus-form-title {
+    margin-bottom: 24px;
+}
+.campus-form-title h3,
+.campus-list-heading h3 {
+    font-family: Georgia, serif;
+    font-weight: normal;
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+.campus-form-title p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+.campus-form .form-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+.campus-form input:not([type="checkbox"]) {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font: inherit;
+    color: var(--text);
+}
+.campus-form input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184,134,59,.08);
+}
+.campus-form .switch-row {
+    align-items: flex-start;
+    line-height: 1.5;
+}
+.campus-list-panel {
+    min-width: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    padding: 22px;
+}
+.campus-list-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.campus-table {
+    min-width: 620px;
+}
+.campus-location-name {
+    font-family: Georgia, serif;
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+.campus-table td small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.5;
+    max-width: 210px;
+}
+.campus-actions {
+    flex-wrap: wrap;
+}
+#campusMessage {
+    margin-bottom: 18px;
+}
+@media (max-width: 1100px) {
+    .campus-layout {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 600px) {
+    .campus-form,
+    .campus-list-panel {
+        padding: 16px;
+    }
+    .campus-table {
+        min-width: 590px;
+    }
+}
