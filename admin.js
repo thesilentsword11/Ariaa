@@ -1350,7 +1350,9 @@ function previewProductImage() {
 
 /* =========================================
    MANUAL UPI PAYMENT SETTINGS
+   QR uploads go directly to the existing product_image bucket.
 ========================================= */
+let paymentQrPreviewObjectUrl = null;
 async function loadPaymentSettings() {
     const message = document.getElementById("paymentSettingsMessage");
     try {
@@ -1359,6 +1361,8 @@ async function loadPaymentSettings() {
         document.getElementById("paymentUpiId").value = data?.upi_id || "";
         document.getElementById("paymentQrUrl").value = data?.qr_image_url || "";
         updatePaymentQrPreview();
+        const name = document.getElementById("paymentQrFileName");
+        if (name && !document.getElementById("paymentQrFile")?.files?.length) name.textContent = data?.qr_image_url ? "A saved QR is active. Choose a new image only if you want to replace it." : "No QR image saved yet. Choose a QR image above.";
         if (message) message.textContent = "Payment settings loaded.";
     } catch (error) {
         if (message) message.textContent = "Could not load payment settings. Run manual-upi-payment-migration.sql and check admin table permissions.";
@@ -1370,28 +1374,55 @@ function updatePaymentQrPreview() {
     const img = document.getElementById("paymentQrPreview");
     const placeholder = document.getElementById("paymentQrPreviewPlaceholder");
     if (!img || !placeholder) return;
-    if (url) { img.src = url; img.hidden = false; placeholder.hidden = true; img.onerror = () => { img.hidden = true; placeholder.hidden = false; placeholder.textContent = "Could not load this image URL. Make sure it is public and points directly to an image."; }; }
-    else { img.removeAttribute("src"); img.hidden = true; placeholder.hidden = false; placeholder.textContent = "QR preview will appear here once a public image URL is saved."; }
+    if (url) { img.src = url; img.hidden = false; placeholder.hidden = true; img.onerror = () => { img.hidden = true; placeholder.hidden = false; placeholder.textContent = "Saved QR could not be previewed. Upload a new image if needed."; }; }
+    else { img.removeAttribute("src"); img.hidden = true; placeholder.hidden = false; placeholder.textContent = "Upload a QR image to preview it here."; }
 }
 document.addEventListener("DOMContentLoaded", () => {
-    const qrInput = document.getElementById("paymentQrUrl");
-    if (qrInput) qrInput.addEventListener("input", updatePaymentQrPreview);
+    const qrFile = document.getElementById("paymentQrFile");
+    if (qrFile) qrFile.addEventListener("change", () => {
+        const file = qrFile.files?.[0];
+        const label = document.getElementById("paymentQrFileName");
+        const img = document.getElementById("paymentQrPreview");
+        const placeholder = document.getElementById("paymentQrPreviewPlaceholder");
+        if (!file) return;
+        if (!file.type.startsWith("image/")) { qrFile.value = ""; if (label) label.textContent = "Please choose an image file."; return; }
+        if (file.size > 5 * 1024 * 1024) { qrFile.value = ""; if (label) label.textContent = "Image is over 5 MB. Choose a smaller QR image."; return; }
+        if (label) label.textContent = `${file.name} · ${(file.size / 1024).toFixed(0)} KB · will upload when you save`;
+        if (paymentQrPreviewObjectUrl) URL.revokeObjectURL(paymentQrPreviewObjectUrl);
+        paymentQrPreviewObjectUrl = URL.createObjectURL(file);
+        if (img && placeholder) { img.src = paymentQrPreviewObjectUrl; img.hidden = false; placeholder.hidden = true; }
+    });
     const form = document.getElementById("paymentSettingsForm");
     if (form) form.addEventListener("submit", async event => {
         event.preventDefault();
         const button = document.getElementById("savePaymentSettingsButton");
         const message = document.getElementById("paymentSettingsMessage");
         const upiId = document.getElementById("paymentUpiId").value.trim();
-        const qrUrl = document.getElementById("paymentQrUrl").value.trim();
+        const qrFile = document.getElementById("paymentQrFile")?.files?.[0] || null;
+        let qrUrl = (document.getElementById("paymentQrUrl").value || "").trim();
         if (!upiId || !/^[^\s@]+@[^\s@]+$/.test(upiId)) { if (message) message.textContent = "Enter a valid UPI ID, such as name@bank."; return; }
-        if (qrUrl && !/^https:\/\//i.test(qrUrl)) { if (message) message.textContent = "QR image URL must be a public HTTPS URL."; return; }
-        button.disabled = true; button.textContent = "SAVING...";
+        if (qrFile && (!qrFile.type.startsWith("image/") || qrFile.size > 5 * 1024 * 1024)) { if (message) message.textContent = "Choose an image under 5 MB."; return; }
+        button.disabled = true; button.textContent = qrFile ? "UPLOADING QR..." : "SAVING...";
+        if (message) message.textContent = "Saving payment settings…";
         try {
+            if (qrFile) {
+                const safeName = qrFile.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/-+/g, "-").slice(-100);
+                const filePath = `payment-qr/${Date.now()}-${safeName || "upi-qr.png"}`;
+                const { error: uploadError } = await adminClient.storage.from("product_image").upload(filePath, qrFile, { cacheControl: "3600", upsert: false, contentType: qrFile.type });
+                if (uploadError) throw new Error("QR upload failed: " + uploadError.message + ". Check that the product_image bucket exists and admin upload permission is enabled.");
+                const publicResult = adminClient.storage.from("product_image").getPublicUrl(filePath);
+                qrUrl = publicResult?.data?.publicUrl || "";
+                if (!qrUrl) throw new Error("Upload succeeded but Supabase did not return a public URL. Check bucket visibility.");
+            }
             const { error } = await adminClient.from("payment_settings").upsert({ id: 1, upi_id: upiId, qr_image_url: qrUrl || null, updated_at: new Date().toISOString() }, { onConflict: "id" });
             if (error) throw error;
-            if (message) message.textContent = "Saved. New checkouts will use these payment details.";
+            document.getElementById("paymentQrUrl").value = qrUrl;
+            if (qrFile) qrFile.value = "";
+            if (message) message.textContent = "✓ SAVED SUCCESSFULLY — new checkouts will use this UPI ID and QR.";
+            const name = document.getElementById("paymentQrFileName");
+            if (name) name.textContent = qrUrl ? "Saved QR is active. Choose another image any time to replace it." : "No QR image saved.";
             updatePaymentQrPreview();
-        } catch (error) { console.error(error); if (message) message.textContent = "Could not save settings: " + error.message; }
+        } catch (error) { console.error("Save payment settings error:", error); if (message) message.textContent = "Could not save settings: " + error.message; }
         finally { button.disabled = false; button.textContent = "SAVE PAYMENT SETTINGS"; }
     });
 });
@@ -1604,8 +1635,10 @@ function renderOrders() {
         row.innerHTML = `
             <td>
                 <strong>${escapeHtml(order.order_id)}</strong>
-                <br><small>${escapeHtml(order.payment_method || "not set")} · ${escapeHtml(order.payment_status || "pending")}</small>
-                ${order.upi_transaction_id ? `<br><small>UPI ref: ${escapeHtml(order.upi_transaction_id)}</small>` : ""}
+                <br><small>${escapeHtml((order.payment_method || "not set").toUpperCase())}</small>
+                <br><span class="payment-status-pill ${order.payment_status === "paid" ? "is-paid" : order.payment_status === "payment_rejected" ? "is-rejected" : "is-pending"}">${escapeHtml(order.payment_status === "paid" ? (order.payment_method === "cod" ? "COD COLLECTED ✓" : "PAYMENT VERIFIED ✓") : order.payment_status === "payment_rejected" ? "PAYMENT REJECTED" : order.payment_status === "pay_on_delivery" ? "PAY ON DELIVERY" : "AWAITING VERIFICATION")}</span>
+                ${order.upi_transaction_id ? `<div class="upi-review-detail"><b>UPI transaction / reference</b><span>${escapeHtml(order.upi_transaction_id)}</span></div>` : order.payment_method === "upi" ? `<div class="upi-review-detail missing-ref">No transaction reference provided</div>` : ""}
+                ${order.payment_verified_at && order.payment_status === "paid" ? `<small class="verified-time">Verified ${escapeHtml(new Date(order.payment_verified_at).toLocaleString("en-IN", {dateStyle:"medium", timeStyle:"short"}))}</small>` : ""}
             </td>
             <td>
                 ${escapeHtml(order.customer_name)}
@@ -1626,7 +1659,7 @@ function renderOrders() {
             <td>${escapeHtml(date)}</td>
             <td>
                 <div class="action-buttons">
-                    ${order.payment_method === "upi" ? `<button class="action-button edit" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','paid')">VERIFY PAID</button><button class="action-button delete" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','payment_rejected')">REJECT</button>` : order.payment_method === "cod" ? `<button class="action-button edit" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','paid')">MARK COLLECTED</button>` : ""}
+                    ${order.payment_method === "upi" ? `<button class="action-button edit" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','paid')">VERIFY PAYMENT</button><button class="action-button delete" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','payment_rejected')">REJECT</button>` : order.payment_method === "cod" ? `<button class="action-button edit" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','paid')">MARK COLLECTED</button>` : ""}
                     <button class="action-button edit"
                         onclick="editOrder('${escapeHtml(order.order_id)}')">EDIT</button>
                     <button class="action-button delete"
@@ -1645,12 +1678,16 @@ async function updatePaymentVerification(orderId, newStatus) {
     if (!order) return;
     const promptText = newStatus === 'paid' ? (order.payment_method === 'cod' ? 'Confirm you received the COD amount in full?' : 'Confirm you checked your payment app/bank and received the full order amount?') : 'Reject this UPI payment reference?';
     if (!confirm(promptText)) return;
-    const { error } = await adminClient.from('orders').update({ payment_status: newStatus, payment_verified_at: newStatus === 'paid' ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq('order_id', orderId);
-    if (error) { alert('Could not update payment status: ' + error.message); return; }
-    order.payment_status = newStatus;
-    order.payment_verified_at = newStatus === 'paid' ? new Date().toISOString() : null;
-    showAdminMessage(newStatus === 'paid' ? 'Payment marked verified/collected.' : 'Payment marked rejected.', 'success');
+    const verifiedAt = newStatus === 'paid' ? new Date().toISOString() : null;
+    const { data, error } = await adminClient.from('orders').update({ payment_status: newStatus, payment_verified_at: verifiedAt, updated_at: new Date().toISOString() }).eq('order_id', orderId).select('order_id,payment_status,payment_verified_at').maybeSingle();
+    if (error || !data) { alert('Payment status was NOT confirmed as saved. ' + (error?.message || 'No updated row returned. Check the admin UPDATE policy.')); console.error('Payment verification update failed:', error); return; }
+    order.payment_status = data.payment_status;
+    order.payment_verified_at = data.payment_verified_at;
     renderOrders();
+    const message = document.getElementById('ordersMessage');
+    if (message) { message.className = 'admin-message success payment-action-confirmation'; message.textContent = newStatus === 'paid' ? (order.payment_method === 'cod' ? '✓ SAVED: COD marked collected for order ' : '✓ PAYMENT VERIFIED AND SAVED for order ') + orderId + (data.payment_verified_at ? ' · ' + new Date(data.payment_verified_at).toLocaleString('en-IN', {dateStyle:'medium',timeStyle:'short'}) : '') : '✓ PAYMENT REJECTED AND SAVED for order ' + orderId; }
+    const row = document.querySelector(`#adminOrders tr`);
+    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 async function updateOrderStatus(orderId, newStatus) {
