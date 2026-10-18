@@ -1349,6 +1349,54 @@ function previewProductImage() {
 
 
 /* =========================================
+   MANUAL UPI PAYMENT SETTINGS
+========================================= */
+async function loadPaymentSettings() {
+    const message = document.getElementById("paymentSettingsMessage");
+    try {
+        const { data, error } = await adminClient.from("payment_settings").select("id, upi_id, qr_image_url").eq("id", 1).maybeSingle();
+        if (error) throw error;
+        document.getElementById("paymentUpiId").value = data?.upi_id || "";
+        document.getElementById("paymentQrUrl").value = data?.qr_image_url || "";
+        updatePaymentQrPreview();
+        if (message) message.textContent = "Payment settings loaded.";
+    } catch (error) {
+        if (message) message.textContent = "Could not load payment settings. Run manual-upi-payment-migration.sql and check admin table permissions.";
+        console.error("Payment settings load error:", error);
+    }
+}
+function updatePaymentQrPreview() {
+    const url = (document.getElementById("paymentQrUrl")?.value || "").trim();
+    const img = document.getElementById("paymentQrPreview");
+    const placeholder = document.getElementById("paymentQrPreviewPlaceholder");
+    if (!img || !placeholder) return;
+    if (url) { img.src = url; img.hidden = false; placeholder.hidden = true; img.onerror = () => { img.hidden = true; placeholder.hidden = false; placeholder.textContent = "Could not load this image URL. Make sure it is public and points directly to an image."; }; }
+    else { img.removeAttribute("src"); img.hidden = true; placeholder.hidden = false; placeholder.textContent = "QR preview will appear here once a public image URL is saved."; }
+}
+document.addEventListener("DOMContentLoaded", () => {
+    const qrInput = document.getElementById("paymentQrUrl");
+    if (qrInput) qrInput.addEventListener("input", updatePaymentQrPreview);
+    const form = document.getElementById("paymentSettingsForm");
+    if (form) form.addEventListener("submit", async event => {
+        event.preventDefault();
+        const button = document.getElementById("savePaymentSettingsButton");
+        const message = document.getElementById("paymentSettingsMessage");
+        const upiId = document.getElementById("paymentUpiId").value.trim();
+        const qrUrl = document.getElementById("paymentQrUrl").value.trim();
+        if (!upiId || !/^[^\s@]+@[^\s@]+$/.test(upiId)) { if (message) message.textContent = "Enter a valid UPI ID, such as name@bank."; return; }
+        if (qrUrl && !/^https:\/\//i.test(qrUrl)) { if (message) message.textContent = "QR image URL must be a public HTTPS URL."; return; }
+        button.disabled = true; button.textContent = "SAVING...";
+        try {
+            const { error } = await adminClient.from("payment_settings").upsert({ id: 1, upi_id: upiId, qr_image_url: qrUrl || null, updated_at: new Date().toISOString() }, { onConflict: "id" });
+            if (error) throw error;
+            if (message) message.textContent = "Saved. New checkouts will use these payment details.";
+            updatePaymentQrPreview();
+        } catch (error) { console.error(error); if (message) message.textContent = "Could not save settings: " + error.message; }
+        finally { button.disabled = false; button.textContent = "SAVE PAYMENT SETTINGS"; }
+    });
+});
+
+/* =========================================
    ADMIN SECTION NAVIGATION
 ========================================= */
 
@@ -1556,7 +1604,8 @@ function renderOrders() {
         row.innerHTML = `
             <td>
                 <strong>${escapeHtml(order.order_id)}</strong>
-                <br><small>${escapeHtml(order.payment_status || "pending")}</small>
+                <br><small>${escapeHtml(order.payment_method || "not set")} · ${escapeHtml(order.payment_status || "pending")}</small>
+                ${order.upi_transaction_id ? `<br><small>UPI ref: ${escapeHtml(order.upi_transaction_id)}</small>` : ""}
             </td>
             <td>
                 ${escapeHtml(order.customer_name)}
@@ -1577,6 +1626,7 @@ function renderOrders() {
             <td>${escapeHtml(date)}</td>
             <td>
                 <div class="action-buttons">
+                    ${order.payment_method === "upi" ? `<button class="action-button edit" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','paid')">VERIFY PAID</button><button class="action-button delete" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','payment_rejected')">REJECT</button>` : order.payment_method === "cod" ? `<button class="action-button edit" onclick="updatePaymentVerification('${escapeHtml(order.order_id)}','paid')">MARK COLLECTED</button>` : ""}
                     <button class="action-button edit"
                         onclick="editOrder('${escapeHtml(order.order_id)}')">EDIT</button>
                     <button class="action-button delete"
@@ -1587,6 +1637,20 @@ function renderOrders() {
 
         table.appendChild(row);
     });
+}
+
+async function updatePaymentVerification(orderId, newStatus) {
+    if (!['paid', 'payment_rejected'].includes(newStatus)) return;
+    const order = allAdminOrders.find(item => item.order_id === orderId);
+    if (!order) return;
+    const promptText = newStatus === 'paid' ? (order.payment_method === 'cod' ? 'Confirm you received the COD amount in full?' : 'Confirm you checked your payment app/bank and received the full order amount?') : 'Reject this UPI payment reference?';
+    if (!confirm(promptText)) return;
+    const { error } = await adminClient.from('orders').update({ payment_status: newStatus, payment_verified_at: newStatus === 'paid' ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq('order_id', orderId);
+    if (error) { alert('Could not update payment status: ' + error.message); return; }
+    order.payment_status = newStatus;
+    order.payment_verified_at = newStatus === 'paid' ? new Date().toISOString() : null;
+    showAdminMessage(newStatus === 'paid' ? 'Payment marked verified/collected.' : 'Payment marked rejected.', 'success');
+    renderOrders();
 }
 
 async function updateOrderStatus(orderId, newStatus) {
