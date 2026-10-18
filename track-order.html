@@ -720,11 +720,16 @@
                 return "—";
             }
 
-            return status
-                .replace(/_/g, " ")
-                .replace(/\b\w/g, function(letter) {
-                    return letter.toUpperCase();
-                });
+            const labels = {
+                awaiting_verification: "Awaiting manual payment verification",
+                pay_on_delivery: "Pay on delivery — not yet collected",
+                paid: "Payment verified / received",
+                payment_rejected: "Payment not verified — please contact Ariaa",
+                pending: "Payment status pending",
+                failed: "Payment failed"
+            };
+            if (labels[status]) return labels[status];
+            return status.replace(/_/g, " ").replace(/\b\w/g, function(letter) { return letter.toUpperCase(); });
 
         }
 
