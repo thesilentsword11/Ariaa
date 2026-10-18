@@ -498,6 +498,11 @@
     .checkout-summary { padding:15px; }
 }
 
+
+.payment-choice-card{margin:20px 0;padding:16px;border:1px solid #efd9e2;border-radius:17px;background:linear-gradient(135deg,#fff7fa,#fcf8ff)}
+.payment-choice-heading{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}.payment-choice-heading>span{display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:#fff;color:#b5788a;font-size:20px}.payment-choice-heading h3{margin:0 0 5px;font-size:17px;color:#513844}.payment-choice-heading p{margin:0;color:#927b85;font-size:11px;line-height:1.5}
+.payment-option{display:flex;gap:10px;align-items:flex-start;padding:12px;margin:8px 0;border:1px solid #ead9e0;border-radius:12px;background:#fff;cursor:pointer}.payment-option input{margin-top:3px;accent-color:#b77e90}.payment-option strong,.payment-option small{display:block}.payment-option strong{color:#513844;font-size:13px}.payment-option small{margin-top:4px;color:#8c7a82;font-size:11px;line-height:1.5}.upi-payment-panel{margin-top:12px;padding:13px;border:1px dashed #d8b6c2;border-radius:13px;background:#fff}.upi-payee{display:grid;gap:6px}.upi-payee span{font-size:10px;color:#907984;text-transform:uppercase;letter-spacing:1px}.upi-payee strong{overflow-wrap:anywhere;color:#553442;font-size:14px}.upi-copy-button{justify-self:start;padding:7px 10px;border:1px solid #e4cbd4;border-radius:8px;background:#fff5f8;color:#895d6d;font-size:10px;font-weight:800;cursor:pointer}.upi-qr-frame{display:grid;place-items:center;min-height:150px;margin:12px 0;padding:10px;border:1px solid #eee0e5;border-radius:12px;background:#fff}.upi-qr-frame img{width:min(220px,100%);height:auto;object-fit:contain}.upi-qr-frame>div{text-align:center;color:#a17e8b}.upi-qr-frame>div strong,.upi-qr-frame>div small{display:block}.upi-qr-frame>div strong{font-size:11px;letter-spacing:1px}.upi-qr-frame>div small{margin-top:7px;font-size:11px}.upi-safety-note{font-size:11px;line-height:1.55;color:#866b77}.upi-payment-panel .checkout-field{margin:12px 0 0}.upi-payment-panel .checkout-field input{width:100%}
+
 </style>
 
 </head>
@@ -1189,6 +1194,19 @@
 
             </div>
 
+
+            <!-- PAYMENT METHOD -->
+            <section class="payment-choice-card" id="paymentChoiceCard" aria-labelledby="paymentChoiceTitle">
+                <div class="payment-choice-heading"><span aria-hidden="true">♡</span><div><h3 id="paymentChoiceTitle">How would you like to pay?</h3><p id="paymentEligibilityNote">UPI payment is available for every order.</p></div></div>
+                <label class="payment-option"><input type="radio" name="paymentMethod" value="upi" checked><span><strong>UPI payment</strong><small>Pay using any UPI app, then enter your transaction reference.</small></span></label>
+                <label class="payment-option" id="codPaymentOption" hidden><input type="radio" name="paymentMethod" value="cod"><span><strong>Cash on Delivery</strong><small>Available for selected active campus / nearby areas only.</small></span></label>
+                <div class="upi-payment-panel" id="upiPaymentPanel">
+                    <div class="upi-payee"><span>Pay to this UPI ID</span><strong id="checkoutUpiId">[ADMIN: SET UPI ID]</strong><button type="button" id="copyUpiIdButton" class="upi-copy-button">COPY UPI ID</button></div>
+                    <div class="upi-qr-frame"><img id="checkoutUpiQr" alt="UPI payment QR placeholder" hidden><div id="checkoutUpiQrPlaceholder"><strong>QR IMAGE PLACEHOLDER</strong><small>The store admin will add the current QR code here.</small></div></div>
+                    <p class="upi-safety-note">Pay the exact order total. Ariaa will verify the payment manually before confirming the payment.</p>
+                    <div class="checkout-field"><label for="upiTransactionId">UPI transaction / reference ID</label><input id="upiTransactionId" type="text" maxlength="120" placeholder="Enter reference ID after paying"><small class="campus-checkout-help">Do not enter a UPI PIN here. A reference ID is not proof of payment; we verify the receipt manually.</small></div>
+                </div>
+            </section>
 
             <!-- ORDER SUMMARY -->
 
