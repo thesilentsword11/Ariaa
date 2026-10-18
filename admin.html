@@ -628,9 +628,10 @@
             <small>ORDER MANAGEMENT</small>
             <h2>Customer Orders</h2>
         </div>
-        <button class="admin-button" onclick="loadOrders()">
-            REFRESH ORDERS
-        </button>
+        <div class="order-heading-actions">
+            <button class="admin-button" type="button" onclick="showAdminSection('paymentSettingsSection'); loadPaymentSettings();">UPI SETTINGS</button>
+            <button class="admin-button" type="button" onclick="loadOrders()">REFRESH ORDERS</button>
+        </div>
     </div>
 
     <div class="order-toolbar">
@@ -659,6 +660,7 @@
     </div>
 
     <div id="ordersMessage" class="admin-message"></div>
+    <div class="payment-review-hint"><strong>UPI review checklist</strong><span>Open your UPI/bank app, confirm the amount and reference ID match the order, then tap <b>VERIFY PAYMENT</b>. The status badge and verification time will remain visible after saving.</span></div>
 
     <div class="products-table-wrapper">
         <table>
@@ -759,13 +761,14 @@
 
 <!-- MANUAL UPI PAYMENT SETTINGS -->
 <section class="admin-section" id="paymentSettingsSection">
-    <div class="section-heading"><div><small>MANUAL PAYMENTS · NO PAYMENT GATEWAY</small><h2>UPI & Payment Settings</h2><p>Update these details whenever you change payment accounts. Only the public UPI ID and QR image URL are stored here—never enter bank passwords, UPI PINs, or secret keys.</p></div><button class="admin-button" type="button" onclick="loadPaymentSettings()">REFRESH</button></div>
+    <div class="section-heading"><div><small>MANUAL PAYMENTS · NO PAYMENT GATEWAY</small><h2>UPI & Payment Settings</h2><p>Update these details whenever you change payment accounts. Change your UPI ID and upload a replacement QR directly from your device. Never enter bank passwords, UPI PINs, or secret keys.</p></div><button class="admin-button" type="button" onclick="loadPaymentSettings()">REFRESH</button></div>
     <div id="paymentSettingsMessage" class="admin-message" role="status"></div>
     <form class="product-form" id="paymentSettingsForm" style="max-width:760px">
       <div class="form-grid">
         <div class="form-field full-width"><label for="paymentUpiId">UPI ID / VPA</label><input id="paymentUpiId" type="text" maxlength="160" placeholder="yourname@bank" required><small>Visible to every customer who selects UPI.</small></div>
-        <div class="form-field full-width"><label for="paymentQrUrl">QR image URL (public image URL)</label><input id="paymentQrUrl" type="url" maxlength="1000" placeholder="https://.../your-upi-qr.png"><small>Upload your QR to the public product_image bucket or another public image host, then paste the image URL. Leave blank to show a placeholder.</small></div>
-        <div class="form-field full-width"><div class="upi-admin-preview" id="paymentQrPreviewWrap"><img id="paymentQrPreview" alt="Current UPI QR preview" hidden><span id="paymentQrPreviewPlaceholder">QR preview will appear here once a public image URL is saved.</span></div></div>
+        <div class="form-field full-width"><label for="paymentQrFile">Upload UPI QR image</label><input id="paymentQrFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif"><small>Choose the QR image from your phone or computer. Ariaa uploads it directly to your existing Supabase <strong>product_image</strong> bucket—no public URL copy/paste needed. Max 5 MB.</small><div class="upi-current-file" id="paymentQrFileName">No new QR selected. Your saved QR will remain active.</div></div>
+        <div class="form-field full-width"><label for="paymentQrUrl">Saved QR image URL (managed automatically)</label><input id="paymentQrUrl" type="url" maxlength="1000" placeholder="A URL appears after saving an uploaded QR" readonly><small>This URL is generated automatically after upload. You do not need to edit it.</small></div>
+        <div class="form-field full-width"><div class="upi-admin-preview" id="paymentQrPreviewWrap"><img id="paymentQrPreview" alt="Current UPI QR preview" hidden><span id="paymentQrPreviewPlaceholder">Upload a QR image to preview it here.</span></div></div>
       </div>
       <div class="form-actions"><button type="submit" class="admin-button" id="savePaymentSettingsButton">SAVE PAYMENT SETTINGS</button></div>
     </form>
