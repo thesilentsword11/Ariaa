@@ -1201,3 +1201,47 @@ tbody tr:hover {
         transform: scale(.98);
     }
 }
+
+
+/* Manual UPI settings and payment review clarity */
+.upi-current-file{margin-top:8px;padding:10px 12px;border:1px dashed #e4c5d2;border-radius:12px;background:#fff8fb;color:#8a6676;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.payment-review-hint{display:flex;flex-direction:column;gap:5px;margin:14px 0;padding:14px 16px;border:1px solid #edd5df;border-radius:15px;background:linear-gradient(135deg,#fff7fa,#fbf7ff);color:#775363;font-size:13px;line-height:1.55}
+.payment-review-hint strong{color:#624051;font-size:14px}
+.payment-status-pill{display:inline-flex;align-items:center;max-width:100%;margin-top:7px;padding:6px 9px;border-radius:999px;font-size:10px;font-weight:800;line-height:1.25;letter-spacing:.2px;white-space:normal}
+.payment-status-pill.is-paid{background:#e7f7ed;color:#20663d;border:1px solid #b9e4c8}
+.payment-status-pill.is-rejected{background:#fff0f0;color:#a13f4c;border:1px solid #f1c6ca}
+.payment-status-pill.is-pending{background:#fff5dd;color:#8c6517;border:1px solid #f0dda8}
+.upi-review-detail{display:grid;gap:4px;margin-top:9px;padding:10px;border:1px solid #e8dce2;border-radius:10px;background:#fff8fb;max-width:260px;overflow-wrap:anywhere}
+.upi-review-detail b{font-size:10px;color:#967586;text-transform:uppercase;letter-spacing:.4px}
+.upi-review-detail span{font-size:13px;font-weight:700;color:#573747;user-select:text;overflow-wrap:anywhere}
+.upi-review-detail.missing-ref{font-size:11px;color:#a13f4c;background:#fff6f5}
+.verified-time{display:block;margin-top:6px;color:#287044;font-size:11px;font-weight:700;line-height:1.4}
+.payment-action-confirmation{padding:13px 14px;border-radius:13px;font-weight:800;line-height:1.5}
+#paymentSettingsSection .upi-admin-preview{max-width:100%;}
+#paymentSettingsSection #paymentQrFile{padding:12px;background:#fff8fb;border:1px dashed #dcbac8;border-radius:12px;width:100%;box-sizing:border-box}
+@media(max-width:900px){
+ #paymentSettingsSection .section-heading{align-items:stretch;flex-direction:column}
+ #paymentSettingsSection .section-heading .admin-button{width:100%;min-height:44px}
+ #paymentSettingsSection .product-form{width:100%;box-sizing:border-box}
+ #paymentSettingsSection .upi-admin-preview{min-height:190px;padding:12px;box-sizing:border-box}
+ #paymentSettingsSection .upi-admin-preview img{max-width:min(100%,260px);max-height:260px;object-fit:contain}
+ #paymentSettingsSection .form-field small{line-height:1.5}
+ #ordersSection .products-table-wrapper{overflow-x:auto;overscroll-behavior-x:contain}
+ #ordersSection .products-table-wrapper table{min-width:920px}
+ #ordersSection #adminOrders td{vertical-align:top;white-space:normal;overflow-wrap:anywhere}
+ #ordersSection .upi-review-detail{max-width:210px}
+ #ordersSection .action-buttons{display:flex;flex-direction:column;gap:7px;min-width:120px}
+ #ordersSection .action-buttons button{min-height:40px;white-space:normal}
+ #ordersSection .payment-review-hint{font-size:12px;padding:13px}
+}
+@media(max-width:480px){
+ #paymentSettingsSection .section-heading h2{font-size:23px!important}
+ #paymentSettingsSection .product-form{padding:13px!important}
+ #paymentSettingsSection #paymentQrFile{font-size:14px;min-height:48px}
+ #ordersSection .payment-status-pill{font-size:9px;padding:6px 8px}
+ #ordersSection .upi-review-detail{max-width:185px;padding:8px}
+ #ordersSection .products-table-wrapper table{min-width:880px}
+}
+
+.order-heading-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+@media(max-width:900px){.order-heading-actions{width:100%;flex-direction:column}.order-heading-actions .admin-button{width:100%;min-height:44px}}
