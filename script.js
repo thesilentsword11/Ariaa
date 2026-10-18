@@ -609,6 +609,7 @@ function closeJewelBox() {
 
 let availableCampusLocations = [];
 let campusLocationsLoadAttempted = false;
+let ariaaPaymentSettings = { upi_id: "[ADMIN: SET UPI ID]", qr_image_url: "" };
 
 async function loadCheckoutCampusLocations() {
     const select = document.getElementById("customerCampusLocation");
@@ -637,6 +638,7 @@ async function loadCheckoutCampusLocations() {
             select.value = previousValue;
         }
         campusLocationsLoadAttempted = true;
+        updatePaymentChoiceUI();
     } catch (error) {
         // Campus selection is optional; checkout remains usable if the SQL setup is not installed yet.
         console.warn("Campus options could not be loaded. Run campus-locations-setup.sql in Supabase when ready.", error.message || error);
@@ -644,9 +646,58 @@ async function loadCheckoutCampusLocations() {
     }
 }
 
+async function loadPublicPaymentSettings() {
+    if (!window.supabaseClient) return;
+    try {
+        const { data, error } = await window.supabaseClient.from("payment_settings").select("upi_id, qr_image_url").eq("id", 1).maybeSingle();
+        if (error) throw error;
+        if (data) ariaaPaymentSettings = { upi_id: data.upi_id || "[ADMIN: SET UPI ID]", qr_image_url: data.qr_image_url || "" };
+    } catch (error) { console.warn("Payment settings not loaded; showing placeholder.", error.message || error); }
+    const id = document.getElementById("checkoutUpiId");
+    const qr = document.getElementById("checkoutUpiQr");
+    const placeholder = document.getElementById("checkoutUpiQrPlaceholder");
+    if (id) id.textContent = ariaaPaymentSettings.upi_id;
+    if (qr && placeholder) {
+        if (ariaaPaymentSettings.qr_image_url) { qr.src = ariaaPaymentSettings.qr_image_url; qr.hidden = false; placeholder.hidden = true; }
+        else { qr.removeAttribute("src"); qr.hidden = true; placeholder.hidden = false; }
+        qr.onerror = () => { qr.hidden = true; placeholder.hidden = false; };
+    }
+}
+
+function updatePaymentChoiceUI() {
+    const campusSelect = document.getElementById("customerCampusLocation");
+    const selected = campusSelect && campusSelect.value ? availableCampusLocations.find(location => location.id === campusSelect.value) : null;
+    const codOption = document.getElementById("codPaymentOption");
+    const note = document.getElementById("paymentEligibilityNote");
+    const panel = document.getElementById("upiPaymentPanel");
+    const codRadio = document.querySelector('input[name="paymentMethod"][value="cod"]');
+    const upiRadio = document.querySelector('input[name="paymentMethod"][value="upi"]');
+    if (codOption) codOption.hidden = !selected;
+    if (note) note.textContent = selected ? `♡ ${selected.campus_name} is an active local area. COD or UPI is available.` : "UPI is available for this order. Choose an active campus / nearby area above to unlock COD.";
+    if (!selected && codRadio && codRadio.checked && upiRadio) upiRadio.checked = true;
+    const chosen = document.querySelector('input[name="paymentMethod"]:checked')?.value || "upi";
+    if (panel) panel.hidden = chosen !== "upi";
+    const txn = document.getElementById("upiTransactionId");
+    if (txn) txn.required = chosen === "upi";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    updatePaymentChoiceUI();
+    loadPublicPaymentSettings();
+    const campus = document.getElementById("customerCampusLocation");
+    if (campus) campus.addEventListener("change", updatePaymentChoiceUI);
+    document.querySelectorAll('input[name="paymentMethod"]').forEach(input => input.addEventListener("change", updatePaymentChoiceUI));
+    const copy = document.getElementById("copyUpiIdButton");
+    if (copy) copy.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(ariaaPaymentSettings.upi_id); copy.textContent = "COPIED!"; }
+        catch (_) { alert("UPI ID: " + ariaaPaymentSettings.upi_id); }
+    });
+});
+
 function checkout() {
 
     loadCheckoutCampusLocations();
+    loadPublicPaymentSettings();
 
     if (
         cart.length === 0
@@ -912,6 +963,17 @@ async function placeOrder(
         const selectedCampus = campusSelect && campusSelect.value
             ? availableCampusLocations.find(location => location.id === campusSelect.value)
             : null;
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || "upi";
+        const upiTransactionId = (document.getElementById("upiTransactionId")?.value || "").trim();
+        if (paymentMethod === "cod" && !selectedCampus) {
+            alert("Cash on Delivery is only available when you choose an active campus / nearby area.");
+            return;
+        }
+        if (paymentMethod === "upi" && !upiTransactionId) {
+            alert("Please pay using UPI and enter the transaction/reference ID. If you have not paid yet, you can do so before placing the order.");
+            document.getElementById("upiTransactionId")?.focus();
+            return;
+        }
 
 
         /* =============================
@@ -1063,8 +1125,10 @@ async function placeOrder(
                 total_amount:
                     total,
 
-                payment_status:
-                    "pending",
+                payment_method: paymentMethod,
+                upi_transaction_id: paymentMethod === "upi" ? upiTransactionId : null,
+                payment_submitted_at: paymentMethod === "upi" ? new Date().toISOString() : null,
+                payment_status: paymentMethod === "upi" ? "awaiting_verification" : "pay_on_delivery",
 
                 order_status:
                     "awaiting_confirmation"
