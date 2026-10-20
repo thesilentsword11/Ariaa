@@ -873,6 +873,13 @@ tbody tr:hover {
     min-width: 220px;
 }
 
+.order-search-button {
+    min-height: 44px;
+    padding: 12px 22px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
 .order-toolbar select {
     min-width: 190px;
 }
@@ -917,6 +924,7 @@ tbody tr:hover {
 
     .order-toolbar input,
     .order-toolbar select,
+    .order-toolbar .order-search-button,
     .report-filters input,
     .report-filters select {
         width: 100%;
@@ -1131,7 +1139,7 @@ tbody tr:hover {
   .products-table-wrapper table { min-width:650px; }
   .products-table-wrapper th, .products-table-wrapper td { padding:11px 10px; white-space:nowrap; }
   .order-toolbar, .report-filters { max-width:none; width:100%; }
-  .order-toolbar input, .order-toolbar select, .report-filters input, .report-filters select { width:100%; min-height:44px; font-size:16px; }
+  .order-toolbar input, .order-toolbar select, .order-toolbar .order-search-button, .report-filters input, .report-filters select { width:100%; min-height:44px; font-size:16px; }
   .campus-actions { gap:7px; }
   #campusSection .campus-table { min-width:650px; }
   #campusSection .campus-list-heading { align-items:flex-start; flex-direction:column; gap:10px; }
