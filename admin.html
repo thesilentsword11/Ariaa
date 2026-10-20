@@ -634,23 +634,27 @@
         </div>
     </div>
 
-    <div class="order-toolbar" role="search" aria-label="Search and filter orders">
-        <input
-            id="orderSearch"
-            type="search"
-            placeholder="Search order ID, name, phone, transaction ID…"
-            aria-label="Search orders"
-            autocomplete="off"
-        >
-        <button id="orderSearchButton" class="admin-button order-search-button" type="button">SEARCH</button>
+    <div class="order-toolbar" id="orderToolbar">
+        <div class="order-search-control">
+            <input
+                id="orderSearch"
+                type="search"
+                placeholder="Order ID, customer, phone, transaction ID…"
+                aria-label="Search orders"
+                autocomplete="off"
+                onkeydown="if (event.key === 'Enter') { event.preventDefault(); applyOrderSearch(); }"
+            >
+            <button class="admin-button order-search-button" id="orderSearchButton" type="button" onclick="applyOrderSearch()">SEARCH</button>
+            <button class="admin-button order-search-clear" type="button" onclick="clearOrderSearch()">CLEAR</button>
+        </div>
 
-        <select id="orderCampusFilter" aria-label="Filter by customer area" onchange="renderOrders()">
+        <select id="orderCampusFilter" aria-label="Filter orders by customer area" onchange="renderOrders()">
             <option value="">All customer areas</option>
             <option value="campus">Campus / nearby-area orders</option>
             <option value="regular">No campus selected</option>
         </select>
 
-        <select id="orderStatusFilter" aria-label="Filter by order status" onchange="renderOrders()">
+        <select id="orderStatusFilter" aria-label="Filter orders by status" onchange="renderOrders()">
             <option value="">All statuses</option>
             <option value="awaiting_confirmation">Awaiting confirmation</option>
             <option value="confirmed">Confirmed</option>
@@ -660,6 +664,7 @@
             <option value="cancelled">Cancelled</option>
         </select>
     </div>
+    <div id="orderSearchResult" class="order-search-result" aria-live="polite"></div>
 
     <div id="ordersMessage" class="admin-message"></div>
     <div class="payment-review-hint"><strong>UPI review checklist</strong><span>Open your UPI/bank app, confirm the amount and reference ID match the order, then tap <b>VERIFY PAYMENT</b>. The status badge and verification time will remain visible after saving.</span></div>
