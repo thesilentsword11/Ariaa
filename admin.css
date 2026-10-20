@@ -846,6 +846,36 @@ tbody tr:hover {
 
 /* ARIAA ORDER MANAGEMENT */
 
+.order-search-control {
+    display: flex;
+    flex: 1 1 360px;
+    min-width: 260px;
+    gap: 8px;
+    align-items: stretch;
+}
+.order-search-control input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.order-search-control .order-search-button,
+.order-search-control .order-search-clear {
+    min-height: 44px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.order-search-result {
+    min-height: 1.2em;
+    margin: -10px 0 12px;
+    color: #78675e;
+    font-size: 12px;
+}
+@media (max-width: 700px) {
+    .order-search-control { width: 100%; min-width: 0; flex: 1 1 100%; }
+    .order-search-control .order-search-button,
+    .order-search-control .order-search-clear { padding-left: 12px; padding-right: 12px; }
+}
+
+
 .order-toolbar,
 .report-filters {
     display: flex;
@@ -871,13 +901,6 @@ tbody tr:hover {
 .order-toolbar input {
     flex: 1;
     min-width: 220px;
-}
-
-.order-search-button {
-    min-height: 44px;
-    padding: 12px 22px;
-    white-space: nowrap;
-    cursor: pointer;
 }
 
 .order-toolbar select {
@@ -924,7 +947,6 @@ tbody tr:hover {
 
     .order-toolbar input,
     .order-toolbar select,
-    .order-toolbar .order-search-button,
     .report-filters input,
     .report-filters select {
         width: 100%;
@@ -1139,7 +1161,7 @@ tbody tr:hover {
   .products-table-wrapper table { min-width:650px; }
   .products-table-wrapper th, .products-table-wrapper td { padding:11px 10px; white-space:nowrap; }
   .order-toolbar, .report-filters { max-width:none; width:100%; }
-  .order-toolbar input, .order-toolbar select, .order-toolbar .order-search-button, .report-filters input, .report-filters select { width:100%; min-height:44px; font-size:16px; }
+  .order-toolbar input, .order-toolbar select, .report-filters input, .report-filters select { width:100%; min-height:44px; font-size:16px; }
   .campus-actions { gap:7px; }
   #campusSection .campus-table { min-width:650px; }
   #campusSection .campus-list-heading { align-items:flex-start; flex-direction:column; gap:10px; }
