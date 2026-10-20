@@ -1807,14 +1807,40 @@ async function deleteOrder(orderId) {
     await loadOrders();
 }
 
-// Keep order search responsive even if inline handlers are blocked by browser settings.
+// Order search: explicit button, Enter key, and live filtering.
+// Define this separately so search still works if inline HTML handlers are unavailable.
+function applyOrderSearch() {
+    renderOrders();
+    const searchInput = document.getElementById("orderSearch");
+    const message = document.getElementById("ordersMessage");
+    const query = (searchInput?.value || "").trim();
+    if (message && query) {
+        const visibleRows = document.querySelectorAll("#adminOrders tr").length;
+        const noResults = document.querySelector("#adminOrders td[colspan='6']")?.textContent?.includes("No matching orders");
+        message.textContent = noResults ? `No orders found for “${query}”. Check the ID or try another detail.` : `Search applied for “${query}”.`;
+        message.classList.toggle("error", Boolean(noResults));
+    } else if (message) {
+        message.textContent = "Showing all orders matching the selected filters.";
+        message.classList.remove("error");
+    }
+}
+
+window.applyOrderSearch = applyOrderSearch;
+
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("orderSearch");
+    const searchButton = document.getElementById("orderSearchButton");
     if (searchInput) {
-        searchInput.addEventListener("input", renderOrders);
-        searchInput.addEventListener("search", renderOrders);
-        searchInput.addEventListener("keyup", renderOrders);
+        searchInput.addEventListener("input", () => renderOrders());
+        searchInput.addEventListener("search", () => renderOrders());
+        searchInput.addEventListener("keydown", event => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                applyOrderSearch();
+            }
+        });
     }
+    if (searchButton) searchButton.addEventListener("click", applyOrderSearch);
 });
 
 /* =========================================
