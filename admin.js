@@ -1603,14 +1603,18 @@ function renderOrders() {
     const campusFilter = document.getElementById("orderCampusFilter")?.value || "";
 
     const filtered = allAdminOrders.filter(order => {
-        const matchesSearch = [
-            order.order_id,
-            order.customer_name,
-            order.customer_phone,
-            order.campus_name,
-            order.campus_city,
-            order.campus_nearby_area
-        ].some(value => String(value || "").toLowerCase().includes(search));
+        const searchableValues = [
+            order.order_id, order.customer_name, order.customer_phone,
+            order.customer_email, order.campus_name, order.campus_city,
+            order.campus_nearby_area, order.payment_method,
+            order.payment_status, order.upi_transaction_id, order.order_status,
+            order.address, order.city, order.state, order.pincode,
+            ...(Array.isArray(order.items) ? order.items.flatMap(item => [item?.name, item?.id, item?.sku]) : [])
+        ];
+        const normalizedSearch = search.replace(/\s+/g, " ");
+        const matchesSearch = !normalizedSearch || searchableValues.some(value =>
+            String(value ?? "").toLowerCase().replace(/\s+/g, " ").includes(normalizedSearch)
+        );
         const hasCampus = Boolean(order.campus_location_id || order.campus_name);
         const matchesCampus = !campusFilter ||
             (campusFilter === "campus" && hasCampus) ||
@@ -1803,6 +1807,16 @@ async function deleteOrder(orderId) {
     await loadOrders();
 }
 
+// Keep order search responsive even if inline handlers are blocked by browser settings.
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("orderSearch");
+    if (searchInput) {
+        searchInput.addEventListener("input", renderOrders);
+        searchInput.addEventListener("search", renderOrders);
+        searchInput.addEventListener("keyup", renderOrders);
+    }
+});
+
 /* =========================================
    CSV REPORT EXPORT
 ========================================= */
@@ -1877,9 +1891,14 @@ function downloadOrderReport(type = "detailed") {
             order => order.payment_status === "paid"
         );
 
-        const pendingPayments = orders.filter(
-            order => order.payment_status === "pending"
+        const pendingPayments = orders.filter(order =>
+            ["pending", "awaiting_verification"].includes(String(order.payment_status || "").toLowerCase())
         );
+        const upiOrders = orders.filter(order => String(order.payment_method || "").toLowerCase() === "upi");
+        const codOrders = orders.filter(order => String(order.payment_method || "").toLowerCase() === "cod");
+        const rejectedPayments = orders.filter(order => order.payment_status === "payment_rejected");
+        const verifiedUpiOrders = upiOrders.filter(order => order.payment_status === "paid");
+        const verifiedUpiTotal = verifiedUpiOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
 
         const statuses = [
             "awaiting_confirmation", "confirmed", "processing",
@@ -1911,7 +1930,9 @@ function downloadOrderReport(type = "detailed") {
                     — ${reportEscape(order.pincode)}</td>
                 <td>${reportItems(order.items)}</td>
                 <td>${reportMoney(order.total_amount)}</td>
-                <td>${reportEscape(order.payment_status)}</td>
+                <td>${reportEscape((order.payment_method || "not set").toUpperCase())}</td>
+                <td>${reportEscape(order.upi_transaction_id || (order.payment_method === "cod" ? "N/A — COD" : "Not provided"))}</td>
+                <td>${reportEscape(order.payment_status || "not set")}${order.payment_verified_at ? `<br><small>Verified: ${reportEscape(new Date(order.payment_verified_at).toLocaleString("en-IN"))}</small>` : ""}</td>
                 <td>${reportEscape(
                     (order.order_status || "").replace(/_/g, " ")
                 )}</td>
@@ -1927,7 +1948,8 @@ function downloadOrderReport(type = "detailed") {
                 <thead><tr>
                     <th>Order ID</th><th>Date</th><th>Customer</th>
                     <th>Delivery Address</th><th>Items</th><th>Total</th>
-                    <th>Payment</th><th>Order Status</th>
+                    <th>Payment Method</th><th>UPI Transaction / Reference ID</th>
+                    <th>Payment Status</th><th>Order Status</th>
                 </tr></thead>
                 <tbody>${rows}</tbody>
             </table>
@@ -1937,8 +1959,17 @@ function downloadOrderReport(type = "detailed") {
                 <div><strong>${orders.length}</strong><span>Total Orders</span></div>
                 <div><strong>${reportMoney(totalValue)}</strong><span>Total Order Value</span></div>
                 <div><strong>${paidOrders.length}</strong><span>Paid Orders</span></div>
-                <div><strong>${pendingPayments.length}</strong><span>Pending Payments</span></div>
+                <div><strong>${pendingPayments.length}</strong><span>Awaiting Payment Verification</span></div>
+                <div><strong>${upiOrders.length}</strong><span>UPI Orders</span></div>
+                <div><strong>${codOrders.length}</strong><span>COD Orders</span></div>
+                <div><strong>${verifiedUpiOrders.length} · ${reportMoney(verifiedUpiTotal)}</strong><span>Verified UPI Orders · Value</span></div>
+                <div><strong>${rejectedPayments.length}</strong><span>Rejected Payments</span></div>
             </div>
+            <h3>Payment Method Breakdown</h3>
+            <table><thead><tr><th>Payment Method</th><th>Orders</th><th>Order Value</th></tr></thead><tbody>
+                <tr><td>UPI</td><td>${upiOrders.length}</td><td>${reportMoney(upiOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0))}</td></tr>
+                <tr><td>Cash on Delivery</td><td>${codOrders.length}</td><td>${reportMoney(codOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0))}</td></tr>
+            </tbody></table>
             <h3>Order Status Breakdown</h3>
             <table>
                 <thead><tr><th>Status</th><th>Orders</th></tr></thead>
@@ -1948,7 +1979,7 @@ function downloadOrderReport(type = "detailed") {
             <table>
                 <thead><tr>
                     <th>Order ID</th><th>Date</th><th>Customer</th>
-                    <th>Total</th><th>Payment</th><th>Status</th>
+                    <th>Total</th><th>Payment Method</th><th>UPI Transaction / Reference ID</th><th>Payment Status</th><th>Order Status</th>
                 </tr></thead>
                 <tbody>
                 ${orders.map(order => `<tr>
@@ -1960,7 +1991,9 @@ function downloadOrderReport(type = "detailed") {
                     )}</td>
                     <td>${reportEscape(order.customer_name)}</td>
                     <td>${reportMoney(order.total_amount)}</td>
-                    <td>${reportEscape(order.payment_status)}</td>
+                    <td>${reportEscape((order.payment_method || "not set").toUpperCase())}</td>
+                    <td>${reportEscape(order.upi_transaction_id || (order.payment_method === "cod" ? "N/A — COD" : "Not provided"))}</td>
+                    <td>${reportEscape(order.payment_status || "not set")}</td>
                     <td>${reportEscape((order.order_status || "").replace(/_/g, " "))}</td>
                 </tr>`).join("")}
                 </tbody>
@@ -2051,6 +2084,10 @@ function downloadOrderCSV() {
             ["State", "state"],
             ["PIN Code", "pincode"],
             ["Order Status", "order_status"],
+            ["Payment Method", "payment_method"],
+            ["UPI Transaction / Reference ID", "upi_transaction_id"],
+            ["Payment Status", "payment_status"],
+            ["Payment Verified At", "payment_verified_at"],
             ["Campus / College", "campus_name"],
             ["Campus City", "campus_city"],
             ["Nearby Area", "campus_nearby_area"],
@@ -2072,7 +2109,11 @@ function downloadOrderCSV() {
         const csv = [
             columns.map(col => cell(col[0])).join(","),
             ...orders.map(order =>
-                columns.map(col => cell(order[col[1]])).join(",")
+                columns.map(col => {
+                    let value = order[col[1]];
+                    if (col[1] === "upi_transaction_id" && !value) value = order.payment_method === "cod" ? "N/A — COD" : "Not provided";
+                    return cell(value);
+                }).join(",")
             )
         ].join("\r\n");
 
