@@ -1591,40 +1591,67 @@ async function loadOrders() {
     renderOrders();
 }
 
+function normalizeOrderSearchValue(value) {
+    return String(value ?? "")
+        .normalize("NFKD")
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}@.+_-]+/gu, " ")
+        .trim();
+}
+
+function applyOrderSearch() {
+    // Explicit action used by the SEARCH button and Enter key.
+    const input = document.getElementById("orderSearch");
+    if (input) input.blur();
+    renderOrders();
+}
+
+function clearOrderSearch() {
+    const input = document.getElementById("orderSearch");
+    if (input) input.value = "";
+    renderOrders();
+    input?.focus();
+}
+
 function renderOrders() {
     const table = document.getElementById("adminOrders");
     if (!table) return;
 
-    const search = (
-        document.getElementById("orderSearch")?.value || ""
-    ).trim().toLowerCase();
-
+    const search = normalizeOrderSearchValue(document.getElementById("orderSearch")?.value || "");
     const status = document.getElementById("orderStatusFilter")?.value || "";
     const campusFilter = document.getElementById("orderCampusFilter")?.value || "";
 
-    const filtered = allAdminOrders.filter(order => {
+    const filtered = (Array.isArray(allAdminOrders) ? allAdminOrders : []).filter(order => {
+        const itemValues = Array.isArray(order.items)
+            ? order.items.flatMap(item => [item?.name, item?.id, item?.sku, item?.product_name, item?.price])
+            : [];
         const searchableValues = [
-            order.order_id, order.customer_name, order.customer_phone,
-            order.customer_email, order.campus_name, order.campus_city,
-            order.campus_nearby_area, order.payment_method,
-            order.payment_status, order.upi_transaction_id, order.order_status,
-            order.address, order.city, order.state, order.pincode,
-            ...(Array.isArray(order.items) ? order.items.flatMap(item => [item?.name, item?.id, item?.sku]) : [])
+            order.order_id, order.id, order.customer_name, order.name,
+            order.customer_phone, order.phone, order.customer_email, order.email,
+            order.campus_name, order.campus_city, order.campus_nearby_area,
+            order.payment_method, order.payment_status, order.upi_transaction_id,
+            order.transaction_id, order.order_status, order.address, order.city,
+            order.state, order.pincode, ...itemValues
         ];
-        const normalizedSearch = search.replace(/\s+/g, " ");
-        const matchesSearch = !normalizedSearch || searchableValues.some(value =>
-            String(value ?? "").toLowerCase().replace(/\s+/g, " ").includes(normalizedSearch)
+        const matchesSearch = !search || searchableValues.some(value =>
+            normalizeOrderSearchValue(value).includes(search)
         );
         const hasCampus = Boolean(order.campus_location_id || order.campus_name);
         const matchesCampus = !campusFilter ||
             (campusFilter === "campus" && hasCampus) ||
             (campusFilter === "regular" && !hasCampus);
-
         return matchesSearch && matchesCampus && (!status || order.order_status === status);
     });
 
+    const resultCount = document.getElementById("orderSearchResult");
+    if (resultCount) {
+        resultCount.textContent = search
+            ? `${filtered.length} matching order${filtered.length === 1 ? "" : "s"}`
+            : `${filtered.length} order${filtered.length === 1 ? "" : "s"}`;
+    }
+
     if (!filtered.length) {
-        table.innerHTML = '<tr><td colspan="6">No matching orders found.</td></tr>';
+        table.innerHTML = '<tr><td colspan="6">No matching orders found. Check the search text or filters.</td></tr>';
         return;
     }
 
@@ -1807,40 +1834,19 @@ async function deleteOrder(orderId) {
     await loadOrders();
 }
 
-// Order search: explicit button, Enter key, and live filtering.
-// Define this separately so search still works if inline HTML handlers are unavailable.
-function applyOrderSearch() {
-    renderOrders();
-    const searchInput = document.getElementById("orderSearch");
-    const message = document.getElementById("ordersMessage");
-    const query = (searchInput?.value || "").trim();
-    if (message && query) {
-        const visibleRows = document.querySelectorAll("#adminOrders tr").length;
-        const noResults = document.querySelector("#adminOrders td[colspan='6']")?.textContent?.includes("No matching orders");
-        message.textContent = noResults ? `No orders found for “${query}”. Check the ID or try another detail.` : `Search applied for “${query}”.`;
-        message.classList.toggle("error", Boolean(noResults));
-    } else if (message) {
-        message.textContent = "Showing all orders matching the selected filters.";
-        message.classList.remove("error");
-    }
-}
-
-window.applyOrderSearch = applyOrderSearch;
-
+// Wire search controls directly as a fallback to inline handlers.
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("orderSearch");
     const searchButton = document.getElementById("orderSearchButton");
-    if (searchInput) {
-        searchInput.addEventListener("input", () => renderOrders());
-        searchInput.addEventListener("search", () => renderOrders());
-        searchInput.addEventListener("keydown", event => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                applyOrderSearch();
-            }
-        });
-    }
-    if (searchButton) searchButton.addEventListener("click", applyOrderSearch);
+    searchInput?.addEventListener("input", renderOrders);
+    searchInput?.addEventListener("search", renderOrders);
+    searchInput?.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            applyOrderSearch();
+        }
+    });
+    searchButton?.addEventListener("click", applyOrderSearch);
 });
 
 /* =========================================
