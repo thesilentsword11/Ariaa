@@ -844,22 +844,36 @@ tbody tr:hover {
 
 }
 
-/* ARIAA ORDER MANAGEMENT */
-
+/* ARIAA ORDER MANAGEMENT — balanced search field and compact actions */
 .order-search-control {
     display: flex;
-    flex: 1 1 360px;
-    min-width: 260px;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
     gap: 8px;
     align-items: stretch;
 }
-.order-search-control input {
-    flex: 1 1 auto;
+.order-search-control input#orderSearch {
+    display: block;
+    box-sizing: border-box;
+    flex: 1 1 0%;
+    width: 100%;
     min-width: 0;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 15px;
+    line-height: 1.4;
 }
 .order-search-control .order-search-button,
 .order-search-control .order-search-clear {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
     min-height: 44px;
+    padding: 8px 14px;
+    font-size: 12px;
+    line-height: 1.2;
     white-space: nowrap;
     cursor: pointer;
 }
@@ -870,9 +884,23 @@ tbody tr:hover {
     font-size: 12px;
 }
 @media (max-width: 700px) {
-    .order-search-control { width: 100%; min-width: 0; flex: 1 1 100%; }
+    .order-search-control {
+        width: 100%;
+        min-width: 0;
+        flex: 1 1 100%;
+        gap: 6px;
+    }
+    .order-search-control input#orderSearch {
+        flex: 1 1 0%;
+        min-width: 0;
+        padding: 10px 11px;
+        font-size: 14px;
+    }
     .order-search-control .order-search-button,
-    .order-search-control .order-search-clear { padding-left: 12px; padding-right: 12px; }
+    .order-search-control .order-search-clear {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
 }
 
 
